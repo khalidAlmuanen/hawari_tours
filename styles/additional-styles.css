@@ -1,0 +1,561 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   🎨 CSS Classes الإضافية - الأنماط المفقودة
+   Additional Custom CSS Classes
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Navigation Links - روابط القائمة
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.nav-link {
+  @apply relative text-gray-700 hover:text-green-600 font-semibold;
+  @apply transition-colors duration-300;
+  @apply px-4 py-2;
+}
+
+.nav-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-green-600;
+  @apply transition-all duration-300;
+}
+
+.nav-link:hover::after {
+  @apply w-full;
+}
+
+.nav-link.active {
+  @apply text-green-600;
+}
+
+.nav-link.active::after {
+  @apply w-full;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Social Media Icons - أيقونات السوشيال ميديا
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.social-icon {
+  @apply w-10 h-10 rounded-full flex items-center justify-center;
+  @apply bg-white/10 hover:bg-green-500;
+  @apply text-white transition-all duration-300;
+  @apply hover:scale-110 hover:shadow-lg;
+}
+
+.social-icon:hover {
+  transform: translateY(-3px) scale(1.1);
+}
+
+/* أيقونات ملونة حسب المنصة */
+.social-icon.facebook:hover {
+  @apply bg-blue-600;
+}
+
+.social-icon.instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+
+.social-icon.twitter:hover {
+  @apply bg-sky-500;
+}
+
+.social-icon.youtube:hover {
+  @apply bg-red-600;
+}
+
+.social-icon.whatsapp:hover {
+  @apply bg-green-500;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Footer Links - روابط التذييل
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.footer-link {
+  @apply text-gray-400 hover:text-green-400;
+  @apply transition-colors duration-300;
+  @apply inline-block relative;
+}
+
+.footer-link::before {
+  content: '';
+  @apply absolute left-0 bottom-0 w-0 h-px bg-green-400;
+  @apply transition-all duration-300;
+}
+
+.footer-link:hover::before {
+  @apply w-full;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Container Custom - حاوية مخصصة
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.container-custom {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.container-narrow {
+  @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.container-wide {
+  @apply max-w-full mx-auto px-4 sm:px-6 lg:px-12;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Back to Top Button - زر العودة للأعلى
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.scroll-to-top {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.scroll-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* JavaScript لإظهار الزر */
+/*
+window.addEventListener('scroll', function() {
+  const scrollBtn = document.querySelector('.scroll-to-top');
+  if (window.scrollY > 300) {
+    scrollBtn.classList.add('show');
+  } else {
+    scrollBtn.classList.remove('show');
+  }
+});
+*/
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Loading States - حالات التحميل
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.skeleton {
+  @apply bg-gray-200 rounded animate-pulse;
+}
+
+.skeleton-text {
+  @apply h-4 bg-gray-200 rounded w-full animate-pulse;
+}
+
+.skeleton-circle {
+  @apply rounded-full bg-gray-200 animate-pulse;
+}
+
+.spinner {
+  @apply inline-block w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Image Overlays - تراكبات الصور
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.img-overlay {
+  @apply absolute inset-0 bg-black/50;
+  @apply transition-opacity duration-300;
+}
+
+.img-overlay-hover {
+  @apply absolute inset-0 bg-black/0 hover:bg-black/50;
+  @apply transition-all duration-300;
+}
+
+.img-overlay-gradient {
+  @apply absolute inset-0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Hover Effects - تأثيرات التمرير
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.hover-scale {
+  @apply transition-transform duration-300;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-scale-sm:hover {
+  transform: scale(1.02);
+}
+
+.hover-scale-lg:hover {
+  transform: scale(1.1);
+}
+
+.hover-lift {
+  @apply transition-all duration-300;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow {
+  @apply transition-all duration-300;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px rgba(0, 168, 107, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Text Effects - تأثيرات النصوص
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.text-shadow-lg {
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(0, 168, 107, 0.8);
+}
+
+.text-gradient-animate {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(
+    90deg,
+    #00A86B 0%,
+    #0066CC 25%,
+    #00A86B 50%,
+    #0066CC 75%,
+    #00A86B 100%
+  );
+  background-size: 200% auto;
+  animation: gradient-shift 3s linear infinite;
+}
+
+@keyframes gradient-shift {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Borders & Dividers - حدود وفواصل
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.border-gradient {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(90deg, #00A86B, #0066CC);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.divider-gradient {
+  @apply h-px my-8;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 168, 107, 0.5) 50%,
+    transparent 100%
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Cards & Panels - بطاقات ولوحات
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.card-gradient {
+  @apply bg-gradient-to-br from-white via-gray-50 to-white;
+  @apply border border-gray-200 rounded-2xl shadow-lg;
+  @apply hover:shadow-2xl transition-shadow duration-300;
+}
+
+.card-hover-lift {
+  @apply transition-all duration-500;
+  @apply hover:-translate-y-2 hover:shadow-2xl;
+}
+
+.card-feature {
+  @apply bg-white rounded-2xl p-6 shadow-md;
+  @apply border-t-4 border-green-500;
+  @apply hover:shadow-xl transition-all duration-300;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Badges & Tags - شارات ووسوم
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.badge-animate {
+  @apply inline-flex items-center gap-2;
+  @apply px-4 py-2 rounded-full;
+  @apply bg-green-100 text-green-700;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.badge-new {
+  @apply bg-red-500 text-white px-2 py-1 text-xs rounded-full;
+  @apply animate-pulse;
+}
+
+.badge-hot {
+  @apply bg-orange-500 text-white px-2 py-1 text-xs rounded-full;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Forms - نماذج
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.form-group {
+  @apply mb-6;
+}
+
+.form-label {
+  @apply block text-sm font-semibold text-gray-700 mb-2;
+}
+
+.form-input {
+  @apply w-full px-4 py-3 rounded-lg border-2 border-gray-300;
+  @apply focus:border-green-500 focus:ring-4 focus:ring-green-200;
+  @apply transition-all duration-200 outline-none;
+}
+
+.form-input:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 168, 107, 0.1);
+}
+
+.form-textarea {
+  @apply form-input resize-none min-h-[120px];
+}
+
+.form-select {
+  @apply form-input appearance-none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: left 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-left: 2.5rem;
+}
+
+.form-checkbox {
+  @apply w-5 h-5 text-green-600 rounded;
+  @apply focus:ring-green-500 focus:ring-2;
+}
+
+.form-radio {
+  @apply w-5 h-5 text-green-600;
+  @apply focus:ring-green-500 focus:ring-2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Alerts & Notifications - تنبيهات وإشعارات
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.alert {
+  @apply p-4 rounded-lg border-r-4 mb-4;
+}
+
+.alert-success {
+  @apply bg-green-50 border-green-500 text-green-800;
+}
+
+.alert-error {
+  @apply bg-red-50 border-red-500 text-red-800;
+}
+
+.alert-warning {
+  @apply bg-yellow-50 border-yellow-500 text-yellow-800;
+}
+
+.alert-info {
+  @apply bg-blue-50 border-blue-500 text-blue-800;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Tooltips - تلميحات
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tooltip {
+  @apply relative inline-block;
+}
+
+.tooltip-text {
+  @apply invisible absolute z-10 bg-gray-900 text-white text-sm rounded-lg py-2 px-3;
+  @apply -top-2 left-full ml-2 whitespace-nowrap;
+  @apply opacity-0 transition-opacity duration-300;
+}
+
+.tooltip:hover .tooltip-text {
+  @apply visible opacity-100;
+}
+
+.tooltip-text::before {
+  content: '';
+  @apply absolute top-1/2 -translate-y-1/2 -right-1;
+  border-width: 4px;
+  border-style: solid;
+  border-color: transparent #1f2937 transparent transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Responsive Utilities - أدوات الاستجابة
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.show-on-mobile {
+  @apply block md:hidden;
+}
+
+.hide-on-mobile {
+  @apply hidden md:block;
+}
+
+.show-on-tablet {
+  @apply hidden md:block lg:hidden;
+}
+
+.show-on-desktop {
+  @apply hidden lg:block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Print Styles - أنماط الطباعة
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    @apply bg-white text-black;
+  }
+  
+  a {
+    text-decoration: underline;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Accessibility - إمكانية الوصول
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus-visible:focus {
+  @apply outline-none ring-4 ring-green-500 ring-offset-2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RTL Support - دعم العربية
+   ═══════════════════════════════════════════════════════════════════════ */
+
+[dir="rtl"] .ml-auto {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+[dir="rtl"] .mr-auto {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Loading Screen - شاشة التحميل
+   ═══════════════════════════════════════════════════════════════════════ */
+
+#loading-screen {
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+#loading-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* JavaScript لإخفاء شاشة التحميل */
+/*
+window.addEventListener('load', function() {
+  const loadingScreen = document.getElementById('loading-screen');
+  setTimeout(() => {
+    loadingScreen.classList.add('hide');
+  }, 1000);
+});
+*/
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Direction LTR للأرقام
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.direction-ltr {
+  direction: ltr;
+  display: inline-block;
+}

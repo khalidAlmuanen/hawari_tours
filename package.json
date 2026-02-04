@@ -1,0 +1,25 @@
+{
+  "name": "hawari-tours",
+  "version": "1.0.0",
+  "description": "Hawari Tours - Socotra Island Tourism Website",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^16.1.6",
+    "nodemailer": "^7.0.13",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1"
+  }
+}
