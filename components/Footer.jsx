@@ -285,30 +285,37 @@ export default function Footer() {
                 </div>
 
                 <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto">
-                  <div className="flex gap-3">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
-                      required
-                      className="flex-1 px-6 py-4 bg-white/20 backdrop-blur-md border-2 border-white/30 rounded-2xl text-white placeholder-white/60 focus:bg-white/30 focus:border-white/50 outline-none transition-all text-lg"
-                    />
-                    <button
-                      type="submit"
-                      className="px-8 py-4 bg-white text-green-600 rounded-2xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
-                    >
-                      <span>{locale === 'ar' ? 'اشترك' : 'Subscribe'}</span>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-                      </svg>
-                    </button>
-                  </div>
+  <div className="flex flex-col sm:flex-row gap-3">
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder={locale === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
+      required
+      className="w-full flex-1 px-6 py-4 bg-white/20 backdrop-blur-md border-2 border-white/30 rounded-2xl text-white placeholder-white/60 focus:bg-white/30 focus:border-white/50 outline-none transition-all text-lg"
+    />
 
-                  <p className="text-center text-white/70 text-sm mt-4">
-                    {locale === 'ar' ? '✓ لا بريد مزعج • يمكنك إلغاء الاشتراك في أي وقت' : '✓ No spam • Unsubscribe anytime'}
-                  </p>
-                </form>
+    <button
+      type="submit"
+      className="w-full sm:w-auto px-6 py-4 bg-white text-green-600 rounded-2xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
+    >
+      <span>{locale === 'ar' ? 'اشترك' : 'Subscribe'}</span>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'}
+        />
+      </svg>
+    </button>
+  </div>
+
+  <p className="text-center text-white/70 text-sm mt-4">
+    {locale === 'ar' ? '✓ لا بريد مزعج • يمكنك إلغاء الاشتراك في أي وقت' : '✓ No spam • Unsubscribe anytime'}
+  </p>
+</form>
+
               </div>
             </div>
           </div>
