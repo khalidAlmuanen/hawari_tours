@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { useApp } from '@/contexts/AppContext'
 import WhatsAppButton from '@/components/WhatsAppButton'
 
@@ -50,6 +51,8 @@ export default function GalleryPage() {
 
   // ═══════════════════════════════════════════════════════════════
   // Photo Gallery Data - بيانات المعرض
+  // ✅ تم إضافة (src + thumbnail) لكل صورة
+  // غيّر الروابط فقط وسيعمل العرض مباشرة
   // ═══════════════════════════════════════════════════════════════
   const photos = [
     // LANDSCAPES - مناظر طبيعية
@@ -58,6 +61,11 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'أشجار دم الأخوين عند الغروب', en: 'Dragon Blood Trees at Sunset' },
       location: { ar: 'جبال حجر', en: 'Haggier Mountains' },
+
+      // ✅ ضع رابط الصورة هنا
+      src: '/img/gallery/landscapes/socotra-14.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-14.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -74,11 +82,15 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'شاطئ ديتوا اللاجون', en: 'Detwah Lagoon Beach' },
       location: { ar: 'قلنسية', en: 'Qalansiyah' },
+
+      src: '/img/gallery/landscapes/socotra-15.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-15.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
         ar: 'مياه فيروزية صافية وكثبان رملية بيضاء في أجمل شواطئ سقطرى',
-        en: 'Crystal turquoise waters and white sand dunes at Socotra\'s most beautiful beach'
+        en: "Crystal turquoise waters and white sand dunes at Socotra's most beautiful beach"
       },
       tags: ['beach', 'lagoon', 'sand', 'water'],
       aspectRatio: 'landscape',
@@ -90,11 +102,15 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'كهف هوق الضخم', en: 'Massive Hoq Cave' },
       location: { ar: 'شرق سقطرى', en: 'East Socotra' },
+
+      src: '/img/gallery/landscapes/socotra-01.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-01.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
         ar: 'تشكيلات صخرية مذهلة داخل أكبر كهوف سقطرى',
-        en: 'Amazing rock formations inside Socotra\'s largest cave'
+        en: "Amazing rock formations inside Socotra's largest cave"
       },
       tags: ['cave', 'rocks', 'underground'],
       aspectRatio: 'portrait',
@@ -106,6 +122,10 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'كثبان عرعر الرملية', en: 'Arher Sand Dunes' },
       location: { ar: 'عرعر', en: 'Arher' },
+
+      src: '/img/gallery/landscapes/socotra-02.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-02.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -122,6 +142,10 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'وادي دي عجهر الأخضر', en: 'Green Di Ajher Valley' },
       location: { ar: 'وسط سقطرى', en: 'Central Socotra' },
+
+      src: '/img/gallery/landscapes/socotra-03.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-03.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -138,6 +162,10 @@ export default function GalleryPage() {
       category: 'landscapes',
       title: { ar: 'شروق الشمس على المحيط', en: 'Ocean Sunrise' },
       location: { ar: 'الساحل الشرقي', en: 'East Coast' },
+
+      src: '/img/gallery/landscapes/socotra-04.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-04.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -156,6 +184,10 @@ export default function GalleryPage() {
       category: 'culture',
       title: { ar: 'بيوت سقطرية تقليدية', en: 'Traditional Socotri Houses' },
       location: { ar: 'قرية حديبو', en: 'Hadiboh Village' },
+
+      src: '/img/gallery/landscapes/socotra-05.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-05.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -172,6 +204,10 @@ export default function GalleryPage() {
       category: 'culture',
       title: { ar: 'صياد سقطري تقليدي', en: 'Traditional Socotri Fisherman' },
       location: { ar: 'ديحمري', en: 'Dihamri' },
+
+      src: '/img/gallery/landscapes/socotra-06.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-06.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -188,6 +224,10 @@ export default function GalleryPage() {
       category: 'culture',
       title: { ar: 'سوق حديبو الشعبي', en: 'Hadiboh Traditional Market' },
       location: { ar: 'حديبو', en: 'Hadiboh' },
+
+      src: '/img/gallery/landscapes/socotra-07.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-07.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -204,6 +244,10 @@ export default function GalleryPage() {
       category: 'culture',
       title: { ar: 'رقصة سقطرية تقليدية', en: 'Traditional Socotri Dance' },
       location: { ar: 'مهرجان محلي', en: 'Local Festival' },
+
+      src: '/img/gallery/landscapes/socotra-08.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-08.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -222,6 +266,10 @@ export default function GalleryPage() {
       category: 'wildlife',
       title: { ar: 'حرباء سقطرى', en: 'Socotra Chameleon' },
       location: { ar: 'غابة دم الأخوين', en: 'Dragon Blood Forest' },
+
+      src: '/img/gallery/landscapes/socotra-09.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-09.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -238,6 +286,10 @@ export default function GalleryPage() {
       category: 'wildlife',
       title: { ar: 'عصفور سقطرى', en: 'Socotra Starling' },
       location: { ar: 'جبال حجر', en: 'Haggier Mountains' },
+
+      src: '/img/gallery/landscapes/socotra-10.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-10.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -254,6 +306,10 @@ export default function GalleryPage() {
       category: 'wildlife',
       title: { ar: 'سلحفاة بحرية', en: 'Sea Turtle' },
       location: { ar: 'شاطئ ديحمري', en: 'Dihamri Beach' },
+
+      src: '/img/gallery/landscapes/socotra-11.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-11.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -270,6 +326,10 @@ export default function GalleryPage() {
       category: 'wildlife',
       title: { ar: 'أسماك المرجان الملونة', en: 'Colorful Coral Fish' },
       location: { ar: 'المحمية البحرية', en: 'Marine Reserve' },
+
+      src: '/img/gallery/landscapes/socotra-12.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-12.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -286,6 +346,10 @@ export default function GalleryPage() {
       category: 'wildlife',
       title: { ar: 'دلافين في البحر', en: 'Dolphins at Sea' },
       location: { ar: 'قبالة الساحل', en: 'Offshore' },
+
+      src: '/img/gallery/landscapes/socotra-13.jpg',
+      thumbnail: '/img/gallery/landscapes/socotra-13.jpg',
+
       photographer: 'Hawari Tours',
       date: '2024',
       description: {
@@ -308,7 +372,7 @@ export default function GalleryPage() {
       title: { ar: 'جولة جوية فوق سقطرى', en: 'Aerial Tour of Socotra' },
       description: {
         ar: 'جولة بطائرة درون فوق أجمل مناطق سقطرى',
-        en: 'Drone tour over Socotra\'s most beautiful areas'
+        en: "Drone tour over Socotra's most beautiful areas"
       },
       duration: '5:30',
       thumbnail: 'aerial-thumb.jpg',
@@ -361,7 +425,7 @@ export default function GalleryPage() {
       title: { ar: 'شاطئ ديتوا 360°', en: 'Detwah Beach 360°' },
       description: {
         ar: 'استكشف أجمل شواطئ سقطرى بزاوية 360 درجة',
-        en: 'Explore Socotra\'s most beautiful beach in 360°'
+        en: "Explore Socotra's most beautiful beach in 360°"
       },
       location: { ar: 'قلنسية', en: 'Qalansiyah' },
       icon: '🏖️',
@@ -372,7 +436,7 @@ export default function GalleryPage() {
       title: { ar: 'كهف هوق 360°', en: 'Hoq Cave 360°' },
       description: {
         ar: 'اكتشف داخل أكبر كهوف سقطرى',
-        en: 'Discover inside Socotra\'s largest cave'
+        en: "Discover inside Socotra's largest cave"
       },
       location: { ar: 'شرق الجزيرة', en: 'East Island' },
       icon: '🏔️',
@@ -389,8 +453,8 @@ export default function GalleryPage() {
   ]
 
   // Filter photos
-  const filteredPhotos = activeCategory === 'all' 
-    ? photos 
+  const filteredPhotos = activeCategory === 'all'
+    ? photos
     : photos.filter(p => p.category === activeCategory)
 
   // Lightbox functions
@@ -421,7 +485,7 @@ export default function GalleryPage() {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
-          
+
           {/* Animated Grid Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="grid grid-cols-8 grid-rows-8 h-full">
@@ -460,13 +524,13 @@ export default function GalleryPage() {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-white/90 mb-8 animate-slide-in-up" style={{animationDelay: '0.1s'}}>
+              <p className="text-xl md:text-2xl text-white/90 mb-8 animate-slide-in-up" style={{ animationDelay: '0.1s' }}>
                 {isAr
                   ? 'استكشف جمال سقطرى من خلال صور وفيديوهات احترافية وجولات افتراضية بزاوية 360°'
-                  : 'Explore Socotra\'s beauty through professional photos, videos, and 360° virtual tours'}
+                  : "Explore Socotra's beauty through professional photos, videos, and 360° virtual tours"}
               </p>
 
-              <div className="flex gap-4 animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <div className="flex gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <a href="#photos" className="btn btn-primary px-8 py-4 text-lg">
                   {isAr ? 'تصفح المعرض' : 'Browse Gallery'}
                 </a>
@@ -494,7 +558,7 @@ export default function GalleryPage() {
               <div
                 key={index}
                 className={`bg-gradient-to-br ${stat.gradient} p-6 rounded-2xl shadow-xl text-center transform hover:scale-105 transition-all animate-fade-in text-white`}
-                style={{animationDelay: `${index * 0.1}s`}}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="text-5xl mb-3">{stat.icon}</div>
                 <div className="text-4xl font-bold mb-2">{stat.number}</div>
@@ -538,6 +602,7 @@ export default function GalleryPage() {
 
       {/* ═══════════════════════════════════════════════════════════════
           Photo Gallery - Masonry Grid
+          ✅ تم استبدال Placeholder بصورة حقيقية من photo.thumbnail/src
           ═══════════════════════════════════════════════════════════════ */}
       <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4 max-w-7xl">
@@ -547,7 +612,7 @@ export default function GalleryPage() {
               {isAr ? 'معرض الصور' : 'Photo Gallery'}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              {isAr 
+              {isAr
                 ? `${filteredPhotos.length} صورة احترافية`
                 : `${filteredPhotos.length} Professional Photos`}
             </p>
@@ -559,8 +624,8 @@ export default function GalleryPage() {
               <div
                 key={photo.id}
                 className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-2 animate-fade-in ${
-                  photo.aspectRatio === 'landscape' 
-                    ? 'md:col-span-2' 
+                  photo.aspectRatio === 'landscape'
+                    ? 'md:col-span-2'
                     : photo.aspectRatio === 'portrait'
                     ? 'md:row-span-2'
                     : ''
@@ -571,17 +636,28 @@ export default function GalleryPage() {
                 }}
                 onClick={() => openLightbox(index)}
               >
-                {/* Image Placeholder */}
+                {/* Image Container */}
                 <div className={`relative ${
                   photo.aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-[4/3]'
                 } ${photo.featured ? 'aspect-square' : ''}`}>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
-                  
-                  {/* Placeholder for actual image */}
-                  <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
-                    📸
-                  </div>
-                  
+
+                  {/* ✅ Actual Image */}
+                  {photo.thumbnail || photo.src ? (
+                    <Image
+                      src={photo.thumbnail || photo.src}
+                      alt={photo.title[locale]}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      priority={photo.featured}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
+                      📸
+                    </div>
+                  )}
+
                   {/* Overlay on Hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity transform scale-0 group-hover:scale-100 transition-transform">
@@ -636,6 +712,7 @@ export default function GalleryPage() {
 
       {/* ═══════════════════════════════════════════════════════════════
           Lightbox Viewer (Full Screen)
+          ✅ تم استبدال Placeholder بصورة حقيقية من photo.src
           ═══════════════════════════════════════════════════════════════ */}
       {isLightboxOpen && (
         <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center animate-fade-in">
@@ -671,13 +748,26 @@ export default function GalleryPage() {
 
           {/* Image Container */}
           <div className="max-w-6xl max-h-[90vh] mx-4">
-            <div 
+            <div
               className="relative rounded-lg overflow-hidden shadow-2xl"
               style={{ backgroundColor: filteredPhotos[currentImageIndex]?.color }}
             >
-              {/* Image Placeholder */}
-              <div className="aspect-video flex items-center justify-center text-white/30 text-9xl min-h-[400px]">
-                📸
+              {/* ✅ Actual Image */}
+              <div className="relative w-[min(92vw,1100px)] h-[min(70vh,720px)]">
+                {filteredPhotos[currentImageIndex]?.src ? (
+                  <Image
+                    src={filteredPhotos[currentImageIndex].src}
+                    alt={filteredPhotos[currentImageIndex]?.title[locale]}
+                    fill
+                    className="object-contain"
+                    sizes="92vw"
+                    priority
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/30 text-9xl min-h-[400px]">
+                    📸
+                  </div>
+                )}
               </div>
             </div>
 
@@ -777,7 +867,7 @@ export default function GalleryPage() {
           {/* Video Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {videos.slice(1).map((video, index) => (
-              <div key={video.id} className="group cursor-pointer animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
+              <div key={video.id} className="group cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="relative aspect-video rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all mb-4 bg-gradient-to-br from-blue-500 to-cyan-600">
                   {/* Thumbnail Placeholder */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -835,13 +925,13 @@ export default function GalleryPage() {
           {/* Virtual Tours Grid */}
           <div className="grid md:grid-cols-3 gap-8">
             {virtualTours.map((tour, index) => (
-              <div 
-                key={tour.id} 
+              <div
+                key={tour.id}
                 className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 cursor-pointer animate-fade-in"
-                style={{animationDelay: `${index * 0.1}s`}}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className={`h-3 bg-gradient-to-r ${tour.gradient}`}></div>
-                
+
                 <div className="p-8">
                   <div className={`w-20 h-20 bg-gradient-to-br ${tour.gradient} rounded-2xl flex items-center justify-center text-5xl mx-auto mb-6 transform group-hover:scale-110 group-hover:rotate-12 transition-all`}>
                     {tour.icon}
@@ -927,10 +1017,10 @@ export default function GalleryPage() {
           {/* Instagram Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
             {[...Array(12)].map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group relative bg-gradient-to-br from-pink-400 to-purple-600 animate-fade-in"
-                style={{animationDelay: `${i * 0.05}s`}}
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 {/* Instagram Icon Placeholder */}
                 <div className="absolute inset-0 flex items-center justify-center text-white/30 text-4xl">
@@ -962,8 +1052,8 @@ export default function GalleryPage() {
 
           {/* Follow Button */}
           <div className="text-center">
-            <a 
-              href="https://instagram.com/hawaritours" 
+            <a
+              href="https://instagram.com/hawaritours"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:shadow-2xl transition-all transform hover:scale-105"
@@ -985,7 +1075,7 @@ export default function GalleryPage() {
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 md:p-12 border-2 border-green-300 dark:border-green-700">
             <div className="text-center">
               <div className="text-6xl mb-6">📥</div>
-              
+
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
                 {isAr ? 'هل تريد نسخة عالية الجودة؟' : 'Want High-Resolution Copy?'}
               </h2>
