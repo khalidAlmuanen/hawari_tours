@@ -7,13 +7,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
   provider = "postgresql" // يمكن تغييره إلى mysql أو sqlite
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 // ═══════════════════════════════════════════════════════════════
