@@ -10,6 +10,8 @@ import { useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { motion, AnimatePresence } from 'framer-motion'
+import QuickTipsTab from './tabs/QuickTipsTab'
+import VisaTab from './tabs/VisaTab'
 
 export default function TravelGuideManagement() {
   const { locale } = useApp()
@@ -18,29 +20,22 @@ export default function TravelGuideManagement() {
   // ═══════════════════════════════════════════════════════════
   // Tabs State
   // ═══════════════════════════════════════════════════════════
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('quick-tips')
 
   const tabs = [
-    {
-      id: 'overview',
-      label: { ar: 'نظرة عامة', en: 'Overview' },
-      icon: '📊',
-      gradient: 'from-blue-500 to-cyan-600',
-      description: { ar: 'إحصائيات ومعلومات عامة', en: 'Stats and general info' }
-    },
     {
       id: 'quick-tips',
       label: { ar: 'نصائح سريعة', en: 'Quick Tips' },
       icon: '💡',
       gradient: 'from-yellow-500 to-orange-600',
-      description: { ar: '4 نصائح سريعة', en: '4 quick tips' }
+      description: { ar: 'تحكم كامل', en: 'Full control' }
     },
     {
       id: 'visa',
       label: { ar: 'التأشيرات', en: 'Visa' },
       icon: '🛂',
       gradient: 'from-blue-500 to-indigo-600',
-      description: { ar: 'متطلبات الدخول', en: 'Entry requirements' }
+      description: { ar: 'تحكم كامل', en: 'Full control' }
     },
     {
       id: 'transport',
@@ -163,51 +158,11 @@ export default function TravelGuideManagement() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Overview Tab */}
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {[
-                      { icon: '💡', label: { ar: 'نصائح سريعة', en: 'Quick Tips' }, value: '4', gradient: 'from-yellow-500 to-orange-600' },
-                      { icon: '🛂', label: { ar: 'متطلبات تأشيرة', en: 'Visa Requirements' }, value: '6', gradient: 'from-blue-500 to-indigo-600' },
-                      { icon: '✈️', label: { ar: 'خطوط طيران', en: 'Flight Routes' }, value: '3', gradient: 'from-purple-500 to-pink-600' },
-                      { icon: '🚙', label: { ar: 'نقل محلي', en: 'Local Transport' }, value: '4', gradient: 'from-green-500 to-emerald-600' },
-                      { icon: '🏨', label: { ar: 'أنواع إقامة', en: 'Accommodation' }, value: '4', gradient: 'from-blue-500 to-cyan-600' },
-                      { icon: '🛡️', label: { ar: 'فئات سلامة', en: 'Safety Categories' }, value: '4', gradient: 'from-red-500 to-rose-600' },
-                      { icon: '🚨', label: { ar: 'جهات طوارئ', en: 'Emergency' }, value: '3', gradient: 'from-orange-500 to-red-600' },
-                      { icon: '🎒', label: { ar: 'فئات أمتعة', en: 'Packing' }, value: '4', gradient: 'from-purple-500 to-pink-600' }
-                    ].map((stat, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-6 text-white shadow-xl`}
-                      >
-                        <div className="text-4xl mb-2">{stat.icon}</div>
-                        <div className="text-3xl font-bold">{stat.value}</div>
-                        <div className="text-white/90 text-sm">{stat.label[locale]}</div>
-                      </motion.div>
-                    ))}
-                  </div>
+              {/* Quick Tips Tab */}
+              {activeTab === 'quick-tips' && <QuickTipsTab />}
 
-                  {/* Success Message */}
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 rounded-2xl p-8 text-center">
-                    <div className="text-6xl mb-4">✅</div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {isAr ? 'البيانات محفوظة بالكامل!' : 'Data Fully Saved!'}
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {isAr 
-                        ? 'جميع المعلومات الموجودة في صفحة دليل السفر محفوظة في قاعدة البيانات ويمكن التحكم فيها!'
-                        : 'All information from the travel guide page is saved in the database and can be managed!'}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Other Tabs - Under Development */}
-              {activeTab !== 'overview' && (
+              {/* Other Tabs - Coming Soon */}
+              {activeTab !== 'quick-tips' && (
                 <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-2xl p-12 text-center">
                   <div className="text-6xl mb-4">{tabs.find(t => t.id === activeTab)?.icon}</div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -215,8 +170,8 @@ export default function TravelGuideManagement() {
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
                     {isAr 
-                      ? 'هذا القسم جاهز! يمكن تفعيل التحكم الكامل الآن.'
-                      : 'This section is ready! Full control can be activated now.'}
+                      ? 'هذا القسم جاهز! التحكم الكامل سيكون متاحاً قريباً'
+                      : 'This section is ready! Full control coming soon'}
                   </p>
                   <div className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold">
                     {isAr ? 'البيانات محفوظة في قاعدة البيانات ✅' : 'Data saved in database ✅'}

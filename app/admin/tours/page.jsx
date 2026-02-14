@@ -335,13 +335,13 @@ export default function ToursManagement() {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
               {isAr ? '🎯 إدارة الجولات' : '🎯 Tours Management'}
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              {isAr ? 'إدارة جميع الجولات السياحية' : 'Manage all tours and packages'}
-            </p>
-          </div>
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            {isAr ? 'إدارة جميع الجولات السياحية' : 'Manage all tours and packages'}
+          </p>
+        </div>
         </motion.div>
 
         {/* Toolbar */}
@@ -513,7 +513,7 @@ export default function ToursManagement() {
                   {/* Actions */}
                   <div className="space-y-2">
                     {/* Row 1: View & Edit */}
-                    <div className="flex gap-2">
+                  <div className="flex gap-2">
                       <motion.a
                         href={`/tours/${tour.slug}`}
                         target="_blank"
@@ -531,10 +531,10 @@ export default function ToursManagement() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEdit(tour)}
-                        className="flex-1 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
-                      >
-                        {isAr ? 'تعديل' : 'Edit'}
+                      onClick={() => handleEdit(tour)}
+                      className="flex-1 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
+                    >
+                      {isAr ? 'تعديل' : 'Edit'}
                       </motion.button>
                     </div>
                     
@@ -613,7 +613,7 @@ export default function ToursManagement() {
 
         {/* Modal - Create/Edit */}
         <AnimatePresence>
-          {showModal && (
+        {showModal && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -628,247 +628,247 @@ export default function ToursManagement() {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-white dark:bg-gray-800 rounded-3xl max-w-5xl w-full my-8 shadow-2xl"
               >
-                {/* Modal Header */}
+              {/* Modal Header */}
                 <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 flex items-center justify-between rounded-t-3xl z-10">
                   <h2 className="text-3xl font-black text-white">
-                    {modalMode === 'create' 
-                      ? (isAr ? '🎉 جولة جديدة' : '🎉 New Tour')
-                      : (isAr ? '✏️ تعديل الجولة' : '✏️ Edit Tour')
-                    }
-                  </h2>
+                  {modalMode === 'create' 
+                    ? (isAr ? '🎉 جولة جديدة' : '🎉 New Tour')
+                    : (isAr ? '✏️ تعديل الجولة' : '✏️ Edit Tour')
+                  }
+                </h2>
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setShowModal(false)}
+                  onClick={() => setShowModal(false)}
                     className="p-2 hover:bg-white/20 rounded-xl transition-all"
-                  >
+                >
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   </motion.button>
-                </div>
+              </div>
 
-                {/* Modal Body - Scrollable */}
-                <form onSubmit={handleSave} className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-                  
+              {/* Modal Body - Scrollable */}
+              <form onSubmit={handleSave} className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+                
                   {/* Basic Info */}
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-500 pb-2 flex items-center gap-2">
                       <span>📝</span>
                       <span>{isAr ? 'معلومات أساسية' : 'Basic Information'}</span>
-                    </h3>
+                  </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'العنوان (English)' : 'Title (English)'} *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.title}
-                          onChange={(e) => handleFormChange('title', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="e.g., Dragon Blood Trees Adventure"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'العنوان (العربي)' : 'Title (Arabic)'} *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.titleAr}
-                          onChange={(e) => handleFormChange('titleAr', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          dir="rtl"
-                          placeholder="مثال: مغامرة أشجار دم الأخوين"
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'العنوان (English)' : 'Title (English)'} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.title}
+                        onChange={(e) => handleFormChange('title', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Dragon Blood Trees Adventure"
+                      />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'الوصف (English)' : 'Description (English)'} *
-                        </label>
-                        <textarea
-                          required
-                          rows={4}
-                          value={formData.description}
-                          onChange={(e) => handleFormChange('description', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Detailed description..."
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'الوصف (العربي)' : 'Description (Arabic)'} *
-                        </label>
-                        <textarea
-                          required
-                          rows={4}
-                          value={formData.descriptionAr}
-                          onChange={(e) => handleFormChange('descriptionAr', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          dir="rtl"
-                          placeholder="وصف تفصيلي..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pricing & Details */}
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-green-500 pb-2 flex items-center gap-2">
-                      <span>💰</span>
-                      <span>{isAr ? 'السعر والتفاصيل' : 'Pricing & Details'}</span>
-                    </h3>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'السعر ($)' : 'Price ($)'} *
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="0"
-                          step="0.01"
-                          value={formData.price}
-                          onChange={(e) => handleFormChange('price', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'الخصم (%)' : 'Discount (%)'} 
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.discount}
-                          onChange={(e) => handleFormChange('discount', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'المدة (أيام)' : 'Duration (days)'} *
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="1"
-                          value={formData.duration}
-                          onChange={(e) => handleFormChange('duration', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'عدد الأشخاص' : 'Max People'} *
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="1"
-                          value={formData.maxPeople}
-                          onChange={(e) => handleFormChange('maxPeople', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'الفئة' : 'Category'} *
-                        </label>
-                        <select
-                          required
-                          value={formData.category}
-                          onChange={(e) => handleFormChange('category', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {categories.map(cat => (
-                            <option key={cat.value} value={cat.value}>{cat.label[locale]}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                          {isAr ? 'المستوى' : 'Difficulty'} *
-                        </label>
-                        <select
-                          required
-                          value={formData.difficulty}
-                          onChange={(e) => handleFormChange('difficulty', e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {difficulties.map(diff => (
-                            <option key={diff.value} value={diff.value}>
-                              {diff.icon} {diff.label[locale]}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Media */}
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-purple-500 pb-2 flex items-center gap-2">
-                      <span>🖼️</span>
-                      <span>{isAr ? 'الصور والفيديو' : 'Media'}</span>
-                    </h3>
 
                     <div>
                       <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                        {isAr ? 'صورة الغلاف (URL)' : 'Cover Image (URL)'}
+                        {isAr ? 'العنوان (العربي)' : 'Title (Arabic)'} *
                       </label>
                       <input
-                        type="url"
-                        value={formData.coverImage}
-                        onChange={(e) => handleFormChange('coverImage', e.target.value)}
-                        placeholder="https://example.com/image.jpg"
+                        type="text"
+                        required
+                        value={formData.titleAr}
+                        onChange={(e) => handleFormChange('titleAr', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        dir="rtl"
+                        placeholder="مثال: مغامرة أشجار دم الأخوين"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الوصف (English)' : 'Description (English)'} *
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={formData.description}
+                        onChange={(e) => handleFormChange('description', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Detailed description..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الوصف (العربي)' : 'Description (Arabic)'} *
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={formData.descriptionAr}
+                        onChange={(e) => handleFormChange('descriptionAr', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        dir="rtl"
+                          placeholder="وصف تفصيلي..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                  {/* Pricing & Details */}
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-green-500 pb-2 flex items-center gap-2">
+                      <span>💰</span>
+                      <span>{isAr ? 'السعر والتفاصيل' : 'Pricing & Details'}</span>
+                  </h3>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'السعر ($)' : 'Price ($)'} *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => handleFormChange('price', e.target.value)}
                         className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
-                    {/* Additional Images */}
                     <div>
                       <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                        {isAr ? 'صور إضافية' : 'Additional Images'}
+                        {isAr ? 'الخصم (%)' : 'Discount (%)'} 
                       </label>
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="url"
-                          value={newImage}
-                          onChange={(e) => setNewImage(e.target.value)}
-                          placeholder="https://example.com/image.jpg"
-                          className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.discount}
+                        onChange={(e) => handleFormChange('discount', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'المدة (أيام)' : 'Duration (days)'} *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={formData.duration}
+                        onChange={(e) => handleFormChange('duration', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'عدد الأشخاص' : 'Max People'} *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={formData.maxPeople}
+                        onChange={(e) => handleFormChange('maxPeople', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الفئة' : 'Category'} *
+                      </label>
+                      <select
+                        required
+                        value={formData.category}
+                        onChange={(e) => handleFormChange('category', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {categories.map(cat => (
+                          <option key={cat.value} value={cat.value}>{cat.label[locale]}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'المستوى' : 'Difficulty'} *
+                      </label>
+                      <select
+                        required
+                        value={formData.difficulty}
+                        onChange={(e) => handleFormChange('difficulty', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {difficulties.map(diff => (
+                            <option key={diff.value} value={diff.value}>
+                              {diff.icon} {diff.label[locale]}
+                            </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                  {/* Media */}
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-purple-500 pb-2 flex items-center gap-2">
+                      <span>🖼️</span>
+                      <span>{isAr ? 'الصور والفيديو' : 'Media'}</span>
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                      {isAr ? 'صورة الغلاف (URL)' : 'Cover Image (URL)'}
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.coverImage}
+                      onChange={(e) => handleFormChange('coverImage', e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Additional Images */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                      {isAr ? 'صور إضافية' : 'Additional Images'}
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="url"
+                        value={newImage}
+                        onChange={(e) => setNewImage(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          type="button"
-                          onClick={handleAddImage}
-                          className="px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700"
-                        >
-                          ➕
+                        type="button"
+                        onClick={handleAddImage}
+                        className="px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700"
+                      >
+                        ➕
                         </motion.button>
-                      </div>
-                      <div className="space-y-2">
-                        {formData.images.map((img, index) => (
+                    </div>
+                    <div className="space-y-2">
+                      {formData.images.map((img, index) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, x: -20 }}
@@ -876,52 +876,52 @@ export default function ToursManagement() {
                             exit={{ opacity: 0, x: 20 }}
                             className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg"
                           >
-                            <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">{img}</span>
+                          <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">{img}</span>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              type="button"
-                              onClick={() => handleRemoveImage(index)}
-                              className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-                            >
-                              ✕
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                          >
+                            ✕
                             </motion.button>
                           </motion.div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </div>
+                </div>
 
                   {/* What's Included */}
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-green-500 pb-2 flex items-center gap-2">
                       <span>✅</span>
                       <span>{isAr ? 'ما يشمله السعر' : "What's Included"}</span>
-                    </h3>
+                  </h3>
 
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={newInclude}
-                        onChange={(e) => setNewInclude(e.target.value)}
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newInclude}
+                      onChange={(e) => setNewInclude(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInclude())}
-                        placeholder={isAr ? 'مثال: النقل من وإلى المطار' : 'e.g., Airport transfers'}
-                        className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        dir={isAr ? 'rtl' : 'ltr'}
-                      />
+                      placeholder={isAr ? 'مثال: النقل من وإلى المطار' : 'e.g., Airport transfers'}
+                      className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      dir={isAr ? 'rtl' : 'ltr'}
+                    />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        type="button"
-                        onClick={handleAddInclude}
-                        className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700"
-                      >
-                        ➕
+                      type="button"
+                      onClick={handleAddInclude}
+                      className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700"
+                    >
+                      ➕
                       </motion.button>
-                    </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      {formData.includes.map((item, index) => (
+                  <div className="space-y-2">
+                    {formData.includes.map((item, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
@@ -929,52 +929,52 @@ export default function ToursManagement() {
                           exit={{ opacity: 0, x: 20 }}
                           className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800"
                         >
-                          <span className="text-green-600 dark:text-green-400 flex-shrink-0">✓</span>
-                          <span className="flex-1 text-gray-700 dark:text-gray-300">{item}</span>
+                        <span className="text-green-600 dark:text-green-400 flex-shrink-0">✓</span>
+                        <span className="flex-1 text-gray-700 dark:text-gray-300">{item}</span>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            type="button"
-                            onClick={() => handleRemoveInclude(index)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-                          >
-                            ✕
+                          type="button"
+                          onClick={() => handleRemoveInclude(index)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                        >
+                          ✕
                           </motion.button>
                         </motion.div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
+                </div>
 
                   {/* What's NOT Included */}
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-red-500 pb-2 flex items-center gap-2">
                       <span>❌</span>
                       <span>{isAr ? 'ما لا يشمله السعر' : 'Not Included'}</span>
-                    </h3>
+                  </h3>
 
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={newExclude}
-                        onChange={(e) => setNewExclude(e.target.value)}
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newExclude}
+                      onChange={(e) => setNewExclude(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddExclude())}
-                        placeholder={isAr ? 'مثال: تذاكر الطيران' : 'e.g., Flight tickets'}
-                        className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        dir={isAr ? 'rtl' : 'ltr'}
-                      />
+                      placeholder={isAr ? 'مثال: تذاكر الطيران' : 'e.g., Flight tickets'}
+                      className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      dir={isAr ? 'rtl' : 'ltr'}
+                    />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        type="button"
-                        onClick={handleAddExclude}
-                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700"
-                      >
-                        ➕
+                      type="button"
+                      onClick={handleAddExclude}
+                      className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700"
+                    >
+                      ➕
                       </motion.button>
-                    </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      {formData.excludes.map((item, index) => (
+                  <div className="space-y-2">
+                    {formData.excludes.map((item, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
@@ -982,88 +982,88 @@ export default function ToursManagement() {
                           exit={{ opacity: 0, x: 20 }}
                           className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800"
                         >
-                          <span className="text-red-600 dark:text-red-400 flex-shrink-0">✗</span>
-                          <span className="flex-1 text-gray-700 dark:text-gray-300">{item}</span>
+                        <span className="text-red-600 dark:text-red-400 flex-shrink-0">✗</span>
+                        <span className="flex-1 text-gray-700 dark:text-gray-300">{item}</span>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            type="button"
-                            onClick={() => handleRemoveExclude(index)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-                          >
-                            ✕
+                          type="button"
+                          onClick={() => handleRemoveExclude(index)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                        >
+                          ✕
                           </motion.button>
                         </motion.div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
+                </div>
 
                   {/* Status */}
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b-2 border-indigo-500 pb-2 flex items-center gap-2">
                       <span>⚙️</span>
                       <span>{isAr ? 'الحالة' : 'Status'}</span>
-                    </h3>
+                  </h3>
 
-                    <div className="flex gap-6">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.featured}
-                          onChange={(e) => handleFormChange('featured', e.target.checked)}
-                          className="w-5 h-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-900 dark:text-white font-semibold">
-                          ⭐ {isAr ? 'مميز' : 'Featured'}
-                        </span>
-                      </label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.featured}
+                        onChange={(e) => handleFormChange('featured', e.target.checked)}
+                        className="w-5 h-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-900 dark:text-white font-semibold">
+                        ⭐ {isAr ? 'مميز' : 'Featured'}
+                      </span>
+                    </label>
 
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.isActive}
-                          onChange={(e) => handleFormChange('isActive', e.target.checked)}
-                          className="w-5 h-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-900 dark:text-white font-semibold">
-                          ✓ {isAr ? 'نشط' : 'Active'}
-                        </span>
-                      </label>
-                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isActive}
+                        onChange={(e) => handleFormChange('isActive', e.target.checked)}
+                        className="w-5 h-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-900 dark:text-white font-semibold">
+                        ✓ {isAr ? 'نشط' : 'Active'}
+                      </span>
+                    </label>
                   </div>
+                </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4 sticky bottom-0 bg-white dark:bg-gray-800 pb-4">
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-4 sticky bottom-0 bg-white dark:bg-gray-800 pb-4">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      type="button"
-                      onClick={() => setShowModal(false)}
-                      className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
-                    >
-                      {isAr ? 'إلغاء' : 'Cancel'}
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      disabled={saving}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-xl transition-all disabled:opacity-50"
-                    >
-                      {saving ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                          <span>{isAr ? 'جاري الحفظ...' : 'Saving...'}</span>
-                        </div>
-                      ) : (
-                        <span>💾 {isAr ? 'حفظ' : 'Save'}</span>
-                      )}
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-xl transition-all disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>{isAr ? 'جاري الحفظ...' : 'Saving...'}</span>
+                      </div>
+                    ) : (
+                      <span>💾 {isAr ? 'حفظ' : 'Save'}</span>
+                    )}
                     </motion.button>
-                  </div>
-                </form>
+                </div>
+              </form>
               </motion.div>
             </motion.div>
-          )}
+        )}
         </AnimatePresence>
       </div>
     </AdminLayout>

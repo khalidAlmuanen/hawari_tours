@@ -382,7 +382,7 @@ export default function GalleryPage() {
               {loading 
                 ? (isAr ? 'جاري التحميل...' : 'Loading...')
                 : (isAr
-                  ? `${filteredPhotos.length} صورة احترافية`
+                ? `${filteredPhotos.length} صورة احترافية`
                   : `${filteredPhotos.length} Professional Photos`)
               }
             </p>
@@ -416,94 +416,94 @@ export default function GalleryPage() {
           {/* Masonry Grid */}
           {!loading && filteredPhotos.length > 0 && (
             <>
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredPhotos.map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-2 animate-fade-in ${
-                      photo.aspectRatio === 'landscape'
-                        ? 'md:col-span-2'
-                        : photo.aspectRatio === 'portrait'
-                        ? 'md:row-span-2'
-                        : ''
-                    } ${photo.featured ? 'lg:col-span-2 lg:row-span-2' : ''}`}
-                    style={{
-                      animationDelay: `${index * 0.05}s`,
-                      backgroundColor: photo.color
-                    }}
-                    onClick={() => openLightbox(index)}
-                  >
-                    {/* Image Container */}
-                    <div className={`relative ${
-                      photo.aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-[4/3]'
-                    } ${photo.featured ? 'aspect-square' : ''}`}>
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
+          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredPhotos.map((photo, index) => (
+              <div
+                key={photo.id}
+                className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-2 animate-fade-in ${
+                  photo.aspectRatio === 'landscape'
+                    ? 'md:col-span-2'
+                    : photo.aspectRatio === 'portrait'
+                    ? 'md:row-span-2'
+                    : ''
+                } ${photo.featured ? 'lg:col-span-2 lg:row-span-2' : ''}`}
+                style={{
+                  animationDelay: `${index * 0.05}s`,
+                  backgroundColor: photo.color
+                }}
+                onClick={() => openLightbox(index)}
+              >
+                {/* Image Container */}
+                <div className={`relative ${
+                  photo.aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-[4/3]'
+                } ${photo.featured ? 'aspect-square' : ''}`}>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
 
-                      {/* ✅ Actual Image */}
-                      {photo.thumbnail || photo.src ? (
-                        <Image
-                          src={photo.thumbnail || photo.src}
-                          alt={photo.title[locale]}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                          priority={photo.featured}
+                  {/* ✅ Actual Image */}
+                  {photo.thumbnail || photo.src ? (
+                    <Image
+                      src={photo.thumbnail || photo.src}
+                      alt={photo.title[locale]}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      priority={photo.featured}
                           unoptimized={true}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
-                          📸
-                        </div>
-                      )}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
+                      📸
+                    </div>
+                  )}
 
-                      {/* Overlay on Hover */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity transform scale-0 group-hover:scale-100 transition-transform">
-                          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Info Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                        <h3 className="text-white font-bold text-lg mb-1">
-                          {photo.title[locale]}
-                        </h3>
-                        <div className="flex items-center gap-2 text-white/80 text-sm">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                          </svg>
-                          <span>{photo.location[locale]}</span>
-                        </div>
-                      </div>
-
-                      {/* Featured Badge */}
-                      {photo.featured && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          {isAr ? 'مميزة' : 'Featured'}
-                        </div>
-                      )}
-
-                      {/* Category Badge */}
-                      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        {categories.find(c => c.id === photo.category)?.icon} {categories.find(c => c.id === photo.category)?.label[locale]}
-                      </div>
+                  {/* Overlay on Hover */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity transform scale-0 group-hover:scale-100 transition-transform">
+                      <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                      </svg>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Load More Button */}
-              {filteredPhotos.length > 12 && (
-                <div className="text-center mt-12">
-                  <button className="btn btn-outline px-8 py-4 text-lg">
-                    {isAr ? 'تحميل المزيد' : 'Load More'}
-                  </button>
+                  {/* Info Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform">
+                    <h3 className="text-white font-bold text-lg mb-1">
+                      {photo.title[locale]}
+                    </h3>
+                    <div className="flex items-center gap-2 text-white/80 text-sm">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      </svg>
+                      <span>{photo.location[locale]}</span>
+                    </div>
+                  </div>
+
+                  {/* Featured Badge */}
+                  {photo.featured && (
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      {isAr ? 'مميزة' : 'Featured'}
+                    </div>
+                  )}
+
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {categories.find(c => c.id === photo.category)?.icon} {categories.find(c => c.id === photo.category)?.label[locale]}
+                  </div>
                 </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Load More Button */}
+          {filteredPhotos.length > 12 && (
+            <div className="text-center mt-12">
+              <button className="btn btn-outline px-8 py-4 text-lg">
+                {isAr ? 'تحميل المزيد' : 'Load More'}
+              </button>
+            </div>
               )}
             </>
           )}

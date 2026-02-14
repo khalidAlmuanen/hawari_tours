@@ -1,378 +1,386 @@
-# 🏝️ Hawari Tours - نظام سياحة سقطرى الاحترافي والمتكامل
+# 🌴 Hawari Tours - Socotra Island Tours Website
+# موقع حواري تورز - جولات جزيرة سقطرى
 
-## 🎉 المشروع مكتمل 100%!
+<div align="center">
 
-### ✅ تم إنجازه بنجاح:
-1. ✅ **الجولات** - احترافية ومتكاملة
-2. ✅ **المعالم** - عصرية ومبهرة
-3. ✅ **الأخبار** - مع Weather Widget حقيقي
-4. ✅ **الحجوزات** - نظام كامل مع Guest Users
-5. ✅ **الرسائل** - للتواصل مع Admin
-6. ✅ **المستخدمين** - نظام كامل مع Profile
-7. ✅ **الصفحة الرئيسية** - تجلب البيانات من Database
-8. ✅ **لوحة التحكم** - احترافية جداً
+![Next.js](https://img.shields.io/badge/Next.js-16.1.6-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Prisma](https://img.shields.io/badge/Prisma-6.19-green)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-cyan)
+
+**Professional, Modern, and Feature-Rich Tourism Website**
+
+[Live Demo](#) | [Documentation](#documentation) | [Support](#support)
+
+</div>
 
 ---
 
-## 🚀 البدء السريع:
+## 📋 Table of Contents
 
-### 1. تشغيل الخادم:
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Deployment](#deployment)
+- [Support](#support)
+
+---
+
+## 🌟 Overview
+
+Hawari Tours is a complete, professional tourism website for Socotra Island, featuring:
+
+- 🌐 **Bilingual** - Full Arabic & English support with RTL/LTR
+- 🎨 **Modern Design** - Beautiful UI with Framer Motion animations
+- 🎛️ **Admin Panel** - Complete content management system
+- 🧳 **Travel Guide** - Comprehensive travel information management
+- 📸 **Gallery** - Image, video, and virtual tour management
+- ✈️ **Tours** - Tour packages with booking system
+- 📰 **News** - Blog/news management system
+- 🌙 **Dark Mode** - Full dark mode support
+- 📱 **Responsive** - Works perfectly on all devices
+
+---
+
+## ✨ Features
+
+### Public Features:
+
+- ✅ **Home Page** - Hero section, featured tours, testimonials
+- ✅ **Tours** - Browse and book tour packages
+- ✅ **Destinations** - Explore Socotra's landmarks
+- ✅ **Travel Guide** - Complete travel information
+- ✅ **Gallery** - Photos, videos, virtual tours, Instagram feed
+- ✅ **News** - Latest updates and blog posts
+- ✅ **About** - Company information
+- ✅ **Contact** - Contact form with validation
+- ✅ **Booking System** - Online tour booking
+
+### Admin Features:
+
+- 🎛️ **Dashboard** - Statistics and overview
+- ✈️ **Tour Management** - CRUD operations for tours
+- 📅 **Booking Management** - View and manage bookings
+- 🗺️ **Destination Management** - Manage landmarks
+- 📰 **News Management** - Create and edit news articles
+- 👥 **User Management** - Manage users and roles
+- 💬 **Message Management** - Handle contact messages
+- 📸 **Gallery Management** - Manage all media content
+- 🧳 **Travel Guide Management** - Complete control over:
+  - Quick Tips
+  - Visa Requirements
+  - Flight Routes
+  - Local Transportation
+  - Accommodation Types
+  - Safety Tips
+  - Emergency Contacts
+  - Packing Lists
+- ⚙️ **Settings** - Site-wide settings
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend:
+- **Next.js 16** - React framework with App Router
+- **React 19** - Latest React features
+- **Tailwind CSS** - Utility-first CSS framework
+- **Framer Motion** - Smooth animations
+- **next/image** - Optimized image loading
+
+### Backend:
+- **Next.js API Routes** - Serverless API endpoints
+- **Prisma** - Modern database ORM
+- **PostgreSQL** - Robust relational database
+- **JWT** - Secure authentication
+- **bcryptjs** - Password hashing
+
+### Tools & Libraries:
+- **TypeScript** - Type safety (optional)
+- **ESLint** - Code linting
+- **Git** - Version control
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites:
+
+```bash
+Node.js 18+ 
+PostgreSQL 14+
+npm or yarn
+```
+
+### Installation:
+
+#### 1. Clone the repository:
+
+```bash
+git clone [repository-url]
+cd hawari_tours
+```
+
+#### 2. Install dependencies:
+
+```bash
+npm install
+```
+
+#### 3. Set up environment variables:
+
+```bash
+# Copy .env.example to .env
+cp .env.example .env
+
+# Edit .env with your settings:
+DATABASE_URL="postgresql://postgres:password@localhost:5432/hawari_tours"
+JWT_SECRET="your-secret-key"
+NODE_ENV="development"
+```
+
+#### 4. Set up the database:
+
+```bash
+# Generate Prisma Client
+npx prisma generate
+
+# Push schema to database
+npx prisma db push
+
+# Seed the database
+node prisma/seed-travel-guide.js
+# If you have other seed files:
+# node prisma/seed.js
+```
+
+#### 5. Run the development server:
+
 ```bash
 npm run dev
 ```
 
-### 2. فتح الموقع:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📁 Project Structure
+
 ```
-http://localhost:3000
+hawari_tours/
+├── app/                      # Next.js App Router
+│   ├── admin/               # Admin panel pages
+│   │   ├── travel-guide/    # Travel guide management
+│   │   │   └── tabs/        # Individual tab components
+│   │   ├── gallery/         # Gallery management
+│   │   ├── tours/           # Tour management
+│   │   └── ...
+│   ├── api/                 # API routes
+│   │   ├── admin/           # Admin APIs
+│   │   │   └── travel-guide/ # Travel guide API
+│   │   └── auth/            # Authentication APIs
+│   ├── gallery/             # Public gallery page
+│   ├── travel-guide/        # Public travel guide
+│   ├── tours/               # Public tours pages
+│   └── ...
+├── components/              # React components
+│   ├── admin/              # Admin components
+│   └── ...
+├── contexts/               # React contexts
+│   ├── AppContext.jsx      # App-wide state
+│   └── AuthContext.jsx     # Authentication
+├── hooks/                  # Custom React hooks
+├── lib/                    # Utility libraries
+│   ├── prisma.js          # Prisma client
+│   ├── auth.js            # Auth utilities
+│   └── apiAuth.js         # API auth middleware
+├── prisma/                 # Database
+│   ├── schema.prisma      # Database schema
+│   └── seed-travel-guide.js # Seed script
+├── public/                 # Static files
+├── .env.example           # Environment variables example
+├── next.config.js         # Next.js configuration
+├── package.json           # Dependencies
+├── tailwind.config.js     # Tailwind configuration
+└── README.md              # This file
 ```
 
 ---
 
-## 📋 الصفحات الرئيسية:
+## 📚 Documentation
 
-### للزوار:
-```
-/               # الصفحة الرئيسية
-/tours          # جميع الجولات
-/tours/[slug]   # تفاصيل جولة + حجز
-/destinations   # المعالم السياحية
-/news           # الأخبار (مع Weather Widget)
-/news/[slug]    # تفاصيل خبر + روابط مشاركة
-/contact        # التواصل
-/login          # تسجيل الدخول
-/register       # تسجيل حساب جديد
-```
+### For Developers:
+- **[PROJECT_DELIVERY_GUIDE.md](./PROJECT_DELIVERY_GUIDE.md)** - Complete delivery guide
+- **[TRAVEL_GUIDE_COMPLETE_SYSTEM.md](./TRAVEL_GUIDE_COMPLETE_SYSTEM.md)** - Travel guide system documentation
 
-### للمستخدمين (بعد تسجيل الدخول):
-```
-/profile        # الملف الشخصي والإعدادات
-  ├─ Profile    # تعديل البيانات
-  ├─ Bookings   # حجوزاتي
-  ├─ Security   # تغيير كلمة المرور
-  └─ Activity   # النشاط والإحصائيات
-```
-
-### للمدراء:
-```
-/admin                  # Dashboard
-/admin/tours            # إدارة الجولات
-/admin/bookings         # إدارة الحجوزات
-/admin/destinations     # إدارة المعالم
-/admin/news             # إدارة الأخبار
-/admin/users            # إدارة المستخدمين
-/admin/messages         # إدارة الرسائل
-```
+### For End Users:
+- **[QUICK_START_FOR_CLIENT.md](./QUICK_START_FOR_CLIENT.md)** - Quick start guide
+- **[ADMIN_TRAVEL_GUIDE_NOW_READY.md](./ADMIN_TRAVEL_GUIDE_NOW_READY.md)** - Admin panel guide
 
 ---
 
-## 👤 حسابات التجربة:
+## 🌐 Deployment
 
-### Admin:
-```
-Email:    admin@hawari.com
-Password: admin123
-Role:     SUPER_ADMIN
-```
+### Option 1: Vercel (Recommended)
 
-### مستخدم عادي:
-```
-سجّل حساب جديد من: /register
-أو استخدم أي حساب قمت بإنشائه
-```
-
----
-
-## ⚙️ **الإعدادات (NEW!)** 🔥
-- ✅ **Maintenance Mode** - يمنع الزوار فعلياً (مع صفحة احترافية)
-- ✅ **Email Service** - نظام بريد كامل (nodemailer)
-- ✅ **Notifications** - إشعارات بالبريد (حجوزات، رسائل، تقييمات)
-- ✅ **General Settings** - اسم الموقع، الوصف، معلومات التواصل
-- ✅ **Social Media** - روابط Facebook, Instagram, Twitter, etc.
-- ✅ **Booking Settings** - العملة، الضريبة، الإلغاء
-- ✅ **6 Tabs** احترافية ومتكاملة
-- ✅ **كل شيء يعمل فعلياً** - ليست مجرد UI!
-
-## 🎨 المميزات الرئيسية:
-
-### 1. الأخبار 📰
-- ✅ Weather Widget بيانات حقيقية تتحدث تلقائياً
-- ✅ Hero Section مع أخبار مميزة
-- ✅ 7 تصنيفات مع ألوان مميزة
-- ✅ روابط مشاركة حقيقية (Facebook, Twitter, WhatsApp, Telegram, LinkedIn)
-
-### 2. المستخدمين 👥
-- ✅ صفحة Profile احترافية (4 أقسام)
-- ✅ تسجيل دخول وتسجيل حساب جديد
-- ✅ تغيير كلمة المرور
-- ✅ إدارة كاملة في Admin Panel
-- ✅ Stats Cards: إجمالي، نشط، معطل، مدراء، مستخدمين
-
-### 3. الحجوزات 📅
-- ✅ BookingModal احترافي
-- ✅ Guest Users (إنشاء تلقائي)
-- ✅ حساب السعر تلقائياً
-- ✅ التحقق من التوفر
-- ✅ عرض في Profile
-
-### 4. الرسائل 💬
-- ✅ Contact Form في الموقع
-- ✅ Contact Modal للجولات
-- ✅ حفظ في Database
-- ✅ إدارة في Admin Panel
-
-### 5. التصميم 🎨
-- ✅ عصري ومبهر جداً
-- ✅ Responsive 100%
-- ✅ RTL/LTR Support
-- ✅ Dark Mode
-- ✅ Framer Motion animations
-- ✅ Glassmorphism effects
-
----
-
-## 🔧 التقنيات المستخدمة:
-
-### Frontend:
-- **Next.js 16** (App Router)
-- **React 19**
-- **Tailwind CSS**
-- **Framer Motion**
-
-### Backend:
-- **Next.js API Routes**
-- **Prisma ORM**
-- **PostgreSQL**
-
-### Authentication:
-- **JWT** (jsonwebtoken)
-- **bcryptjs** (password hashing)
-- **HTTP-only cookies**
-- **Role-based access control**
-
-### External APIs:
-- **OpenWeatherMap** (طقس حقيقي)
-
----
-
-## 📊 Database Schema:
-
-### Models:
-```
-✅ User          # المستخدمين (3 أدوار)
-✅ Tour          # الجولات
-✅ Booking       # الحجوزات
-✅ Destination   # المعالم
-✅ News          # الأخبار
-✅ Message       # الرسائل
-✅ Review        # التقييمات
-✅ GalleryImage  # المعرض
-```
-
-### Relations:
-```
-User → Bookings, Reviews, Messages
-Tour → Bookings, Reviews
-Destination → (standalone)
-News → (standalone)
-```
-
----
-
-## 🎯 كيفية الاستخدام:
-
-### 1. إضافة محتوى:
-```
-1. سجّل دخول كـ Admin: /admin/login
-2. اذهب للقسم المطلوب:
-   - /admin/tours → أضف جولة
-   - /admin/news → أضف خبر
-   - /admin/destinations → أضف معلم
-3. املأ البيانات
-4. تأكد من تفعيل Published/Active ✅
-5. احفظ
-6. شاهد في الموقع العام!
-```
-
-### 2. إدارة المستخدمين:
-```
-1. اذهب إلى: /admin/users
-2. شاهد Stats Cards
-3. استخدم Filters للبحث
-4. Edit/Delete/Toggle Status
-```
-
-### 3. التسجيل كمستخدم:
-```
-1. اذهب إلى: /register
-2. املأ البيانات
-3. سجّل حساب جديد
-4. ستُوجّه تلقائياً لـ /profile
-```
-
-### 4. الحجز:
-```
-1. تصفح الجولات: /tours
-2. اختر جولة واضغط "Book Now"
-3. املأ بيانات الحجز
-4. أرسل
-5. ✅ سيُحفظ في Database
-6. ✅ يظهر في /admin/bookings
-7. ✅ يظهر في /profile (إذا كنت مسجل دخول)
-```
-
----
-
-## 🔍 المشاكل الشائعة والحلول:
-
-### المحتوى لا يظهر في الموقع؟
-```
-✅ الحل: تأكد من تفعيل:
-- Tours: isActive = ✅
-- News: published = ✅
-- Destinations: isActive = ✅
-```
-
-### الطقس لا يعمل؟
-```
-✅ الحل:
-1. تحقق من .env.local
-2. تأكد من وجود: NEXT_PUBLIC_OPENWEATHER_API_KEY
-3. إذا فشل API → يستخدم Fallback تلقائياً
-```
-
-### الحجز لا يعمل؟
-```
-✅ الحل:
-1. تحقق من Console (F12)
-2. تأكد من أن الجولة isActive = ✅
-3. تحقق من التواريخ
-```
-
-### لا يمكن تسجيل الدخول؟
-```
-✅ الحل:
-1. تحقق من البريد وكلمة المرور
-2. Admin: admin@hawari.com / admin123
-3. User: سجّل حساب جديد من /register
-```
-
----
-
-## 📁 الملفات المهمة:
-
-### Environment:
-```bash
-.env.local                  # متغيرات البيئة
-├─ DATABASE_URL             # رابط Database
-├─ JWT_SECRET               # مفتاح JWT
-├─ NEXT_PUBLIC_OPENWEATHER_API_KEY  # مفتاح الطقس
-```
-
-### Database:
-```bash
-prisma/
-└─ schema.prisma            # Schema كامل
-```
-
-### APIs:
-```bash
-app/api/
-├─ auth/                    # المصادقة
-│  ├─ login/                # تسجيل دخول
-│  ├─ register/             # تسجيل حساب
-│  ├─ logout/               # تسجيل خروج
-│  ├─ me/                   # الملف الشخصي
-│  └─ change-password/      # تغيير كلمة المرور
-├─ tours/                   # الجولات (عام)
-├─ news/                    # الأخبار (عام)
-├─ destinations/            # المعالم (عام)
-├─ bookings/                # الحجوزات (عام)
-├─ messages/                # الرسائل (عام)
-├─ weather/                 # الطقس (عام)
-└─ admin/                   # إدارة (محمي)
-   ├─ tours/
-   ├─ news/
-   ├─ destinations/
-   ├─ bookings/
-   ├─ users/
-   └─ messages/
-```
-
----
-
-## 🌟 ما يميز المشروع:
-
-### الاحترافية:
-- ✅ تصميم عصري ومبهر جداً
-- ✅ كود نظيف ومنظم
-- ✅ Comments شاملة
-- ✅ Error handling احترافي
-
-### الأداء:
-- ✅ APIs سريعة (<500ms)
-- ✅ Caching محلي للطقس
-- ✅ Image optimization
-- ✅ Loading states في كل مكان
-
-### الأمان:
-- ✅ JWT Tokens آمنة
-- ✅ Password hashing (bcrypt)
-- ✅ HTTP-only cookies
-- ✅ Protected routes
-- ✅ Role-based access
-
-### التكامل:
-- ✅ 100% متوافق مع Database
-- ✅ Prisma Schema محكم
-- ✅ Relations صحيحة
-- ✅ Validation شامل
-
----
-
-## 📞 الدعم:
-
-### إذا واجهت مشكلة:
-1. افتح Console (F12)
-2. ابحث عن Errors
-3. تحقق من Terminal
-4. تأكد من أن Database يعمل
-
-### Logs مفيدة:
-```bash
-# في Terminal:
-✅ [API] News found: ...
-✅ [Weather] Real data fetched successfully!
-✅ [Auth] User created successfully: ...
-✅ [Booking] Created booking: ...
-```
-
----
-
-## 🎯 النتيجة النهائية:
-
-### نظام متكامل لشركة سياحية:
-- ✅ **الموقع العام**: عصري ومبهر
-- ✅ **لوحة التحكم**: احترافية جداً
-- ✅ **نظام المستخدمين**: كامل ومتكامل
-- ✅ **الحجوزات**: سهلة وآمنة
-- ✅ **الأخبار**: مع طقس حقيقي
-- ✅ **المشاركة**: روابط حقيقية تعمل
-- ✅ **التصميم**: رهيب جداً جداً
-
----
-
-## 🚀 الخادم:
+#### 1. Set up database (Supabase/Neon/Railway):
 
 ```bash
-✅ Server:         http://localhost:3000
-✅ Database:       PostgreSQL (Connected)
-✅ APIs:           All Working
-✅ Weather:        Real Data (OpenWeatherMap)
-✅ Authentication: JWT (Secure)
+# Get your database URL from:
+# - Supabase: https://supabase.com
+# - Neon: https://neon.tech
+# - Railway: https://railway.app
+```
+
+#### 2. Push schema and seed data:
+
+```bash
+# Update DATABASE_URL in .env
+npx prisma db push
+node prisma/seed-travel-guide.js
+```
+
+#### 3. Deploy to Vercel:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Add environment variables in Vercel Dashboard:
+# - DATABASE_URL
+# - JWT_SECRET
+# - NODE_ENV=production
+```
+
+### Option 2: Other Platforms
+
+The project can be deployed to any platform supporting Next.js:
+- Netlify
+- AWS
+- Google Cloud
+- DigitalOcean
+- Heroku
+
+See [PROJECT_DELIVERY_GUIDE.md](./PROJECT_DELIVERY_GUIDE.md) for detailed instructions.
+
+---
+
+## 🔐 Default Admin Account
+
+After seeding, you can create an admin account via:
+
+### Option 1: API
+```bash
+POST /api/auth/register
+Body: {
+  "email": "admin@example.com",
+  "password": "YourPassword123!",
+  "name": "Admin"
+}
+
+# Then update role to SUPER_ADMIN in database
+```
+
+### Option 2: Prisma Studio
+```bash
+npx prisma studio
+
+# Navigate to users table
+# Insert new user with role: SUPER_ADMIN
 ```
 
 ---
 
-**المشروع الآن احترافي، متكامل، عصري، ومبهر جداً جداً! 🎉✨🔥**
+## 📊 Database Schema
 
-**جاهز للاستخدام في شركة سياحية!** 🏝️
+The project uses PostgreSQL with Prisma ORM. Main models:
+
+- **User** - Users and authentication
+- **Tour** - Tour packages
+- **Booking** - Tour bookings
+- **Destination** - Landmarks and attractions
+- **News** - News articles
+- **Message** - Contact messages
+- **GalleryImage** - Gallery images
+- **GalleryVideo** - Gallery videos
+- **VirtualTour** - 360° tours
+- **InstagramPost** - Instagram feed
+- **QuickTip** - Quick travel tips
+- **VisaRequirement** - Visa requirements
+- **FlightRoute** - Flight information
+- **LocalTransport** - Local transportation
+- **AccommodationType** - Accommodation options
+- **SafetyCategory** - Safety tips
+- **EmergencyContact** - Emergency contacts
+- **PackingCategory** - Packing lists
+- **TravelGuideSetting** - Travel guide settings
+- **GallerySetting** - Gallery settings
+
+---
+
+## 🤝 Contributing
+
+This is a client project. For modifications, please contact the project owner.
+
+---
+
+## 📝 License
+
+© 2026 Hawari Tours. All rights reserved.
+
+---
+
+## 🆘 Support
+
+For support, please refer to:
+
+1. **Documentation** - Check the docs folder
+2. **Issues** - Create an issue on GitHub (if applicable)
+3. **Contact** - Email: [support-email]
+
+---
+
+## 🎯 Project Status
+
+```
+✅ Frontend - Complete
+✅ Backend APIs - Complete
+✅ Admin Panel - Complete
+✅ Travel Guide System - Complete
+✅ Gallery System - Complete
+✅ Authentication - Complete
+✅ Database - Complete
+✅ Responsive Design - Complete
+✅ Dark Mode - Complete
+✅ Bilingual Support - Complete
+✅ Documentation - Complete
+```
+
+---
+
+## 🙏 Acknowledgments
+
+- **Next.js** - React framework
+- **Prisma** - Database ORM
+- **Tailwind CSS** - Styling
+- **Framer Motion** - Animations
+- **Vercel** - Hosting platform
+
+---
+
+<div align="center">
+
+**Made with ❤️ for Hawari Tours**
+
+**Socotra Island - جزيرة سقطرى**
+
+🌴 Discover the Magic of Socotra 🌴
+
+</div>
