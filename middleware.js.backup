@@ -1,0 +1,208 @@
+// ═══════════════════════════════════════════════════════════════
+// 🔐 Authentication Middleware - Complete & Professional
+// /middleware.js (root level)
+// ═══════════════════════════════════════════════════════════════
+
+import { NextResponse } from 'next/server'
+import { verifyToken } from './lib/auth'
+
+/**
+ * Middleware to protect routes
+ */
+export function middleware(request) {
+  const { pathname } = request.nextUrl
+
+  // ═══════════════════════════════════════════════════════════
+  // PUBLIC ROUTES (no authentication required)
+  // ═══════════════════════════════════════════════════════════
+  const publicRoutes = [
+    '/',
+    '/tours',
+    '/destinations',
+    '/news',
+    '/gallery',
+    '/about',
+    '/contact',
+    '/admin/login'
+  ]
+
+  // Check if current path is public
+  const isPublicRoute = publicRoutes.some(route => {
+    if (route === pathname) return true
+    if (pathname.startsWith(route + '/')) return true
+    return false
+  })
+
+  // Allow access to public routes
+  if (isPublicRoute) {
+    return NextResponse.next()
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // PROTECTED ADMIN ROUTES
+  // ═══════════════════════════════════════════════════════════
+  if (pathname.startsWith('/admin')) {
+    // Get token from cookie
+    const token = request.cookies.get('auth-token')?.value
+
+    // No token - redirect to login
+    if (!token) {
+      const loginUrl = new URL('/admin/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // Verify token
+    const decoded = verifyToken(token)
+    
+    // Invalid or expired token - redirect to login
+    if (!decoded) {
+      const response = NextResponse.redirect(new URL('/admin/login', request.url))
+      response.cookies.delete('auth-token')
+      return response
+    }
+
+    // Check if user has admin role
+    const userRole = decoded.role
+    const adminRoles = ['ADMIN', 'SUPER_ADMIN']
+    
+    if (!adminRoles.includes(userRole)) {
+      // User authenticated but not admin - redirect to home
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SUPER ADMIN ONLY ROUTES
+    // ═══════════════════════════════════════════════════════════
+    const superAdminOnlyRoutes = [
+      '/admin/users',
+      '/admin/settings/security',
+      '/admin/settings/system'
+    ]
+
+    const isSuperAdminRoute = superAdminOnlyRoutes.some(route => 
+      pathname.startsWith(route)
+    )
+
+    if (isSuperAdminRoute && userRole !== 'SUPER_ADMIN') {
+      // Only super admin can access
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    // Token is valid and user has required role - allow access
+    const response = NextResponse.next()
+    
+    // Optional: Add user info to headers for API routes
+    response.headers.set('x-user-id', decoded.userId)
+    response.headers.set('x-user-role', decoded.role)
+    
+    return response
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // API ROUTES PROTECTION (optional - can also use requireAuth in each API)
+  // ═══════════════════════════════════════════════════════════
+  if (pathname.startsWith('/api/admin')) {
+    const token = request.cookies.get('auth-token')?.value ||
+                  request.headers.get('Authorization')?.replace('Bearer ', '')
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
+    const adminRoles = ['ADMIN', 'SUPER_ADMIN']
+    if (!adminRoles.includes(decoded.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      )
+    }
+
+    const response = NextResponse.next()
+    response.headers.set('x-user-id', decoded.userId)
+    response.headers.set('x-user-role', decoded.role)
+    return response
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // USER DASHBOARD ROUTES (optional - for user-facing dashboard)
+  // ═══════════════════════════════════════════════════════════
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
+    const token = request.cookies.get('auth-token')?.value
+
+    if (!token) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.delete('auth-token')
+      return response
+    }
+
+    return NextResponse.next()
+  }
+
+  // Default: allow access to other routes
+  return NextResponse.next()
+}
+
+/**
+ * Configure which routes the middleware should run on
+ */
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - api/auth/* (auth endpoints are public)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder (public assets)
+     * - files with extensions (images, fonts, etc.)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|images|fonts|.*\\..*).*)',
+  ]
+}
+
+/**
+ * Rate limiting configuration (optional)
+ * Can be enhanced with Redis or other solutions for production
+ */
+const rateLimitMap = new Map()
+
+function checkRateLimit(ip, limit = 100, windowMs = 60000) {
+  const now = Date.now()
+  const userRequests = rateLimitMap.get(ip) || []
+  
+  // Clean old entries
+  const recentRequests = userRequests.filter(time => now - time < windowMs)
+  
+  if (recentRequests.length >= limit) {
+    return false
+  }
+  
+  recentRequests.push(now)
+  rateLimitMap.set(ip, recentRequests)
+  
+  return true
+}
+
+// Clean rate limit map every hour
+setInterval(() => {
+  rateLimitMap.clear()
+}, 3600000)

@@ -1,297 +1,502 @@
 'use client'
 
-// ═══════════════════════════════════════════════════════════════════════
-// 📰 Socotra News Page - Ultra Professional & Modern
-// تصميم احترافي جداً وعصري ومبهر - متكامل 100%
-// ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// 📰 ULTIMATE NEWS PAGE - STUNNING & PROFESSIONAL
+// صفحة الأخبار - رهيبة واحترافية ومبهرة جداً جداً
+// ✅ Weather Widget + Featured News + Categories + Animations
+// ═══════════════════════════════════════════════════════════════
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useApp } from '@/contexts/AppContext'
+import { motion, AnimatePresence } from 'framer-motion'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import { useLiveWeather } from '@/hooks/useLiveWeather'
 
-export default function NewsPage() {
-  const { locale, isDark } = useApp()
+export default function UltimateNewsPage() {
+  const { locale } = useApp()
   const isAr = locale === 'ar'
 
+  // Weather Hook
+  const {
+    currentWeather,
+    weeklyForecast,
+    loading: weatherLoading
+  } = useLiveWeather(locale)
+
+  // State
+  const [news, setNews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
   const [activeCategory, setActiveCategory] = useState('all')
-  const [selectedDay, setSelectedDay] = useState(0)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [featuredNews, setFeaturedNews] = useState([])
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
-  // Update time
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
-    return () => clearInterval(timer)
-  }, [])
-
-  // Auto-rotate featured
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFeaturedIndex((prev) => (prev + 1) % 3)
-    }, 6000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Categories
+  // Categories with proper config
   const categories = [
-    { id: 'all', name: { ar: 'الكل', en: 'All' }, icon: '📰', count: 10 },
-    { id: 'tourism', name: { ar: 'السياحة', en: 'Tourism' }, icon: '✈️', count: 4 },
-    { id: 'environment', name: { ar: 'البيئة', en: 'Environment' }, icon: '🌿', count: 3 },
-    { id: 'weather', name: { ar: 'الطقس', en: 'Weather' }, icon: '🌤️', count: 2 },
-    { id: 'unesco', name: { ar: 'UNESCO', en: 'UNESCO' }, icon: '🏛️', count: 1 }
+    { value: 'all', label: { ar: 'الكل', en: 'All' }, icon: '📰', color: 'from-gray-500 to-gray-700' },
+    { value: 'TOURISM', label: { ar: 'سياحة', en: 'Tourism' }, icon: '✈️', color: 'from-blue-500 to-cyan-600' },
+    { value: 'CULTURE', label: { ar: 'ثقافة', en: 'Culture' }, icon: '🎭', color: 'from-purple-500 to-pink-600' },
+    { value: 'ENVIRONMENT', label: { ar: 'بيئة', en: 'Environment' }, icon: '🌿', color: 'from-green-500 to-emerald-600' },
+    { value: 'WEATHER', label: { ar: 'طقس', en: 'Weather' }, icon: '🌤️', color: 'from-yellow-500 to-orange-600' },
+    { value: 'UNESCO', label: { ar: 'يونسكو', en: 'UNESCO' }, icon: '🏛️', color: 'from-indigo-500 to-purple-600' },
+    { value: 'EVENTS', label: { ar: 'فعاليات', en: 'Events' }, icon: '🎉', color: 'from-pink-500 to-rose-600' }
   ]
 
-  // Featured News
-  const featuredNews = [
-    {
-      id: 1,
-      category: 'tourism',
-      breaking: true,
-      title: { ar: '🔥 سقطرى تسجل 5000 سائح في يناير', en: '🔥 Socotra Records 5,000 Tourists in January' },
-      excerpt: { ar: 'ارتفاع قياسي بنسبة 40% مع رحلات جديدة', en: 'Record 40% increase with new flights' },
-      date: '2024-02-06',
-      readTime: '5 min',
-      gradient: 'from-blue-600 to-indigo-700'
-    },
-    {
-      id: 2,
-      category: 'environment',
-      breaking: false,
-      title: { ar: 'اكتشاف 3 نباتات جديدة في جبال حجر', en: '3 New Plants Discovered in Haggier' },
-      excerpt: { ar: 'فريق دولي يكتشف أنواعاً نباتية فريدة', en: 'International team finds unique species' },
-      date: '2024-02-05',
-      readTime: '7 min',
-      gradient: 'from-green-600 to-emerald-700'
-    },
-    {
-      id: 3,
-      category: 'unesco',
-      breaking: false,
-      title: { ar: 'UNESCO: 2 مليون دولار لحماية دم الأخوين', en: 'UNESCO: $2M for Dragon Blood Protection' },
-      excerpt: { ar: 'مشروع لحماية الأشجار المهددة', en: 'Project to protect endangered trees' },
-      date: '2024-02-04',
-      readTime: '6 min',
-      gradient: 'from-purple-600 to-pink-700'
+  // Mount
+  useEffect(() => {
+    setIsMounted(true)
+    fetchNews()
+  }, [])
+
+  // Auto-rotate featured news
+  useEffect(() => {
+    if (featuredNews.length > 0) {
+      const interval = setInterval(() => {
+        setFeaturedIndex((prev) => (prev + 1) % featuredNews.length)
+      }, 5000)
+      return () => clearInterval(interval)
     }
-  ]
+  }, [featuredNews])
 
-  // News Articles
-  const newsArticles = [
-    { id: 4, category: 'tourism', title: { ar: '3 فنادق جديدة في حديبو', en: '3 New Hotels in Hadiboh' }, excerpt: { ar: 'استعداداً لموسم الذروة', en: 'Preparing for peak season' }, date: '2024-02-03', views: 1240, gradient: 'from-blue-500 to-cyan-600' },
-    { id: 5, category: 'tourism', title: { ar: 'رحلات مباشرة من الرياض', en: 'Direct Flights from Riyadh' }, excerpt: { ar: 'طيران ناس تطلق رحلات أسبوعية', en: 'Flynas launches weekly flights' }, date: '2024-02-02', views: 2100, gradient: 'from-indigo-500 to-purple-600' },
-    { id: 6, category: 'environment', title: { ar: 'نجاح برنامج إكثار النباتات', en: 'Plant Propagation Success' }, excerpt: { ar: '10,000 شتلة للتشجير', en: '10,000 seedlings produced' }, date: '2024-02-01', views: 890, gradient: 'from-green-500 to-teal-600' },
-    { id: 7, category: 'environment', title: { ar: 'تنظيف الشواطئ: 2 طن نفايات', en: 'Beach Cleanup: 2 Tons' }, excerpt: { ar: 'مشاركة واسعة من المتطوعين', en: 'Wide volunteer participation' }, date: '2024-01-30', views: 1450, gradient: 'from-emerald-500 to-green-600' },
-    { id: 8, category: 'weather', title: { ar: 'أمطار خفيفة في مارس', en: 'Light Rain in March' }, excerpt: { ar: 'مفيدة للغطاء النباتي', en: 'Beneficial for vegetation' }, date: '2024-01-28', views: 3200, gradient: 'from-blue-400 to-sky-600' },
-    { id: 9, category: 'weather', title: { ar: 'حرارة مثالية حتى أبريل', en: 'Perfect Temps Until April' }, excerpt: { ar: '24-27°C للسياحة', en: '24-27°C for tourism' }, date: '2024-01-25', views: 1780, gradient: 'from-orange-400 to-amber-600' },
-    { id: 10, category: 'unesco', title: { ar: 'ورشة دولية للتراث الطبيعي', en: 'International Heritage Workshop' }, excerpt: { ar: '15 خبيراً دولياً', en: '15 international experts' }, date: '2024-01-20', views: 670, gradient: 'from-purple-500 to-indigo-600' }
-  ]
+  // Fetch news from database
+  const fetchNews = async () => {
+    setLoading(true)
+    try {
+      console.log('🔄 Fetching news...')
+      const response = await fetch('/api/news/all')
+      const result = await response.json()
 
-  // Weather Data
-  const currentWeather = {
-    temp: 26,
-    feelsLike: 28,
-    condition: { ar: 'صافي', en: 'Clear' },
-    icon: '☀️',
-    humidity: 65,
-    windSpeed: 12,
-    uvIndex: 7,
-    sunrise: '06:15',
-    sunset: '18:30'
+      console.log('📦 News API response:', result)
+
+      if (result.success) {
+        const allNews = result.data || []
+        console.log(`✅ Loaded ${allNews.length} published news`)
+        setNews(allNews)
+        setFeaturedNews(allNews.filter(n => n.featured))
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch news:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const weeklyForecast = [
-    { day: { ar: 'اليوم', en: 'Today' }, date: 'Feb 6', high: 26, low: 21, icon: '☀️', rain: 0 },
-    { day: { ar: 'غداً', en: 'Tomorrow' }, date: 'Feb 7', high: 27, low: 22, icon: '⛅', rain: 10 },
-    { day: { ar: 'الأربعاء', en: 'Wed' }, date: 'Feb 8', high: 28, low: 23, icon: '☀️', rain: 0 },
-    { day: { ar: 'الخميس', en: 'Thu' }, date: 'Feb 9', high: 27, low: 22, icon: '🌤️', rain: 5 },
-    { day: { ar: 'الجمعة', en: 'Fri' }, date: 'Feb 10', high: 26, low: 21, icon: '⛅', rain: 15 },
-    { day: { ar: 'السبت', en: 'Sat' }, date: 'Feb 11', high: 25, low: 20, icon: '🌧️', rain: 40 },
-    { day: { ar: 'الأحد', en: 'Sun' }, date: 'Feb 12', high: 26, low: 21, icon: '🌤️', rain: 10 }
-  ]
+  // Filter news
+  const filteredNews = activeCategory === 'all' 
+    ? news 
+    : news.filter(n => n.category === activeCategory)
 
-  const filteredArticles = activeCategory === 'all' ? newsArticles : newsArticles.filter(a => a.category === activeCategory)
+  const currentFeatured = featuredNews[featuredIndex]
+
+  // Get weather icon gradient
+  const getWeatherGradient = () => {
+    if (!currentWeather) return 'from-blue-400 to-cyan-500'
+    const temp = currentWeather.temp
+    if (temp >= 30) return 'from-orange-500 to-red-600'
+    if (temp >= 25) return 'from-yellow-400 to-orange-500'
+    if (temp >= 20) return 'from-blue-400 to-cyan-500'
+    return 'from-cyan-400 to-blue-500'
+  }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Hero with Featured News */}
-      <section className="relative h-[85vh] min-h-[700px] overflow-hidden">
-        <div className="absolute inset-0">
-          <div className={`absolute inset-0 bg-gradient-to-br ${featuredNews[featuredIndex].gradient} transition-all duration-1000`} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
-        </div>
-
-        <div className="relative h-full flex items-center z-10">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <div className="max-w-5xl">
-              <div className="inline-flex items-center gap-3 bg-red-500/95 backdrop-blur-md px-6 py-3 rounded-full mb-6 shadow-lg">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                </span>
-                <span className="text-white text-sm font-bold uppercase">{isAr ? 'أخبار حية' : 'LIVE'}</span>
-                <span className="text-white/80 text-sm">{currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-
-              {featuredNews[featuredIndex].breaking && (
-                <div className="inline-block bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-bold text-sm mb-4 animate-pulse">
-                  ⚡ {isAr ? 'عاجل' : 'BREAKING'}
-                </div>
+    <div className={`min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 ${isAr ? 'rtl' : 'ltr'}`}>
+      
+      {/* Hero Section with Featured News */}
+      <section className="relative h-[75vh] min-h-[650px] overflow-hidden">
+        <AnimatePresence mode="wait">
+          {currentFeatured && (
+            <motion.div
+              key={currentFeatured.id}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0"
+            >
+              {currentFeatured.coverImage && (
+                <>
+                  <Image
+                    src={currentFeatured.coverImage}
+                    alt={isAr ? currentFeatured.titleAr : currentFeatured.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+                </>
               )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                {featuredNews[featuredIndex].title[locale]}
-              </h1>
-
-              <p className="text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed">
-                {featuredNews[featuredIndex].excerpt[locale]}
-              </p>
-
-              <div className="flex flex-wrap gap-6 mb-8 text-white/90">
-                <span>{new Date(featuredNews[featuredIndex].date).toLocaleDateString(locale, { month: 'long', day: 'numeric' })}</span>
-                <span>• {featuredNews[featuredIndex].readTime}</span>
-                <span>• {categories.find(c => c.id === featuredNews[featuredIndex].category)?.name[locale]}</span>
-              </div>
-
-              <div className="flex gap-4">
-                <a href="#latest-news" className="btn btn-primary px-8 py-4">{isAr ? 'المزيد' : 'Read More'}</a>
-                <a href="#weather" className="btn btn-outline border-2 border-white text-white hover:bg-white hover:text-gray-900 px-8 py-4">{isAr ? 'الطقس' : 'Weather'}</a>
-              </div>
-
-              <div className="flex gap-3 mt-12">
-                {featuredNews.map((_, i) => (
-                  <button key={i} onClick={() => setFeaturedIndex(i)} className={`h-2 rounded-full transition-all ${i === featuredIndex ? 'w-12 bg-white' : 'w-2 bg-white/50'}`} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Weather Widget */}
-      <section id="weather" className="py-16 bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-900 -mt-20 relative z-20">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 p-12 text-white">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-7xl">{currentWeather.icon}</span>
-                    <div>
-                      <div className="text-6xl font-bold">{currentWeather.temp}°C</div>
-                      <div className="text-xl opacity-90">{isAr ? 'يشعر بـ' : 'Feels'} {currentWeather.feelsLike}°C</div>
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-bold mb-2">{currentWeather.condition[locale]}</h3>
-                  <p className="text-white/80">Socotra • {isAr ? 'الآن' : 'Now'}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl">
-                    <div className="text-sm mb-1">{isAr ? 'الرطوبة' : 'Humidity'}</div>
-                    <div className="text-2xl font-bold">{currentWeather.humidity}%</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl">
-                    <div className="text-sm mb-1">{isAr ? 'الرياح' : 'Wind'}</div>
-                    <div className="text-2xl font-bold">{currentWeather.windSpeed} km/h</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl">
-                    <div className="text-sm mb-1">{isAr ? 'UV' : 'UV Index'}</div>
-                    <div className="text-2xl font-bold">{currentWeather.uvIndex}</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl">
-                    <div className="text-sm mb-1">{isAr ? 'الشروق' : 'Sunrise'}</div>
-                    <div className="text-xl font-bold">{currentWeather.sunrise}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{isAr ? 'توقعات 7 أيام' : '7-Day Forecast'}</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                {weeklyForecast.map((day, i) => (
-                  <div key={i} className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedDay === i ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'}`} onClick={() => setSelectedDay(i)}>
-                    <div className="text-center">
-                      <div className="font-bold text-gray-900 dark:text-white mb-1">{day.day[locale]}</div>
-                      <div className="text-xs text-gray-500 mb-3">{day.date}</div>
-                      <div className="text-4xl mb-3">{day.icon}</div>
-                      <div className="flex justify-center gap-2 text-sm">
-                        <span className="font-bold">{day.high}°</span>
-                        <span className="text-gray-500">{day.low}°</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Category Filters */}
-      <section className="py-8 bg-white dark:bg-gray-800 sticky top-20 z-40 border-b border-gray-200 dark:border-gray-700 shadow">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex overflow-x-auto gap-4 pb-2">
-            {categories.map(cat => (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}>
-                <span className="text-xl">{cat.icon}</span>
-                <span>{cat.name[locale]}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeCategory === cat.id ? 'bg-white/20' : 'bg-gray-200 dark:bg-gray-600'}`}>{cat.count}</span>
-              </button>
+        {/* Animated Background Particles */}
+        {isMounted && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(15)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-white/20 rounded-full"
+                initial={{
+                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+                  y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)
+                }}
+                animate={{
+                  y: [null, Math.random() * -100],
+                  opacity: [0.2, 0.5, 0.2]
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }}
+              />
             ))}
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Latest News Grid */}
-      <section id="latest-news" className="py-20 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-12 text-center">{isAr ? 'آخر الأخبار' : 'Latest News'}</h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((article, i) => (
-              <div key={article.id} className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 animate-fade-in" style={{animationDelay: `${i * 0.1}s`}}>
-                <div className={`h-48 bg-gradient-to-br ${article.gradient} flex items-center justify-center text-6xl text-white/30`}>
-                  {categories.find(c => c.id === article.category)?.icon}
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold">{categories.find(c => c.id === article.category)?.name[locale]}</span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">{article.title[locale]}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{article.excerpt[locale]}</p>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <span>{new Date(article.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}</span>
-                    <span className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                      </svg>
-                      {article.views}
+        {/* Content Overlay */}
+        <div className="absolute inset-0 flex items-end">
+          <div className="container mx-auto px-4 pb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-5xl"
+            >
+              {currentFeatured ? (
+                <>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    <motion.span
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="px-5 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-full text-sm font-bold flex items-center gap-2 shadow-2xl"
+                    >
+                      <span className="text-xl">🔥</span>
+                      <span>{isAr ? 'عاجل' : 'Breaking'}</span>
+                    </motion.span>
+                    <span className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-bold shadow-xl backdrop-blur-md">
+                      {categories.find(c => c.value === currentFeatured.category)?.icon} {categories.find(c => c.value === currentFeatured.category)?.label[locale]}
                     </span>
                   </div>
+                  <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-2xl leading-tight">
+                    {isAr ? currentFeatured.titleAr : currentFeatured.title}
+                  </h1>
+                  <p className="text-xl md:text-2xl text-white/95 mb-8 line-clamp-2 leading-relaxed">
+                    {isAr ? currentFeatured.excerptAr : currentFeatured.excerpt}
+                  </p>
+                  <Link
+                    href={`/news/${currentFeatured.slug}`}
+                    className="inline-flex items-center gap-3 px-10 py-5 bg-white text-blue-600 rounded-2xl font-bold text-lg hover:bg-blue-50 hover:scale-105 transition-all shadow-2xl"
+                  >
+                    <span>{isAr ? 'اقرأ المزيد' : 'Read More'}</span>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isAr ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+                    </svg>
+                  </Link>
+                </>
+              ) : (
+                <div>
+                  <h1 className="text-6xl md:text-8xl font-black text-white mb-6 drop-shadow-2xl">
+                    {isAr ? 'الأخبار والتحديثات' : 'News & Updates'}
+                  </h1>
+                  <p className="text-2xl text-white/95">
+                    {isAr ? 'آخر الأخبار والمستجدات عن سقطرى' : 'Latest news and updates about Socotra'}
+                  </p>
                 </div>
-              </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Featured Navigation Dots */}
+        {featuredNews.length > 1 && (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
+            {featuredNews.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setFeaturedIndex(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === featuredIndex 
+                    ? 'bg-white w-12 shadow-lg' 
+                    : 'bg-white/40 w-2 hover:bg-white/70'
+                }`}
+              />
             ))}
           </div>
+        )}
+      </section>
+
+      {/* Weather Widget - STUNNING & PROFESSIONAL */}
+      {!weatherLoading && currentWeather && (
+        <section className="container mx-auto px-4 -mt-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`bg-gradient-to-br ${getWeatherGradient()} rounded-3xl p-8 shadow-2xl backdrop-blur-lg border border-white/20`}
+          >
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Current Weather */}
+              <div className="md:col-span-1">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-6xl">{currentWeather.icon}</span>
+                  <div>
+                    <h3 className="text-white/90 text-sm font-semibold">
+                      {isAr ? 'الطقس الآن' : 'Current Weather'}
+                    </h3>
+                    <p className="text-white text-5xl font-black">
+                      {Math.round(currentWeather.temp)}°
+                    </p>
+                  </div>
+                </div>
+                <p className="text-white/90 text-lg font-semibold mb-2">
+                  {currentWeather.condition}
+                </p>
+                <div className="flex items-center gap-4 text-white/80 text-sm">
+                  <span>↑ {Math.round(currentWeather.tempMax)}°</span>
+                  <span>↓ {Math.round(currentWeather.tempMin)}°</span>
+                </div>
+              </div>
+
+              {/* Weekly Forecast */}
+              <div className="md:col-span-2">
+                <div className="grid grid-cols-4 lg:grid-cols-7 gap-3">
+                  {weeklyForecast.slice(0, 7).map((day, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center hover:bg-white/20 transition-all"
+                    >
+                      <p className="text-white/80 text-xs font-semibold mb-2">
+                        {day.day}
+                      </p>
+                      <span className="text-3xl mb-2 block">{day.icon}</span>
+                      <div className="flex justify-center gap-1 text-white text-sm font-bold">
+                        <span>{Math.round(day.high)}°</span>
+                        <span className="text-white/60">{Math.round(day.low)}°</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/20">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">💧</span>
+                <div>
+                  <p className="text-white/70 text-xs">{isAr ? 'الرطوبة' : 'Humidity'}</p>
+                  <p className="text-white font-bold">{currentWeather.humidity}%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">💨</span>
+                <div>
+                  <p className="text-white/70 text-xs">{isAr ? 'الرياح' : 'Wind'}</p>
+                  <p className="text-white font-bold">{currentWeather.windSpeed} km/h</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">👁️</span>
+                <div>
+                  <p className="text-white/70 text-xs">{isAr ? 'الرؤية' : 'Visibility'}</p>
+                  <p className="text-white font-bold">{currentWeather.visibility} km</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">☀️</span>
+                <div>
+                  <p className="text-white/70 text-xs">{isAr ? 'الأشعة UV' : 'UV Index'}</p>
+                  <p className="text-white font-bold">{currentWeather.uvi}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+      )}
+
+      {/* Categories Filter */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="flex flex-wrap gap-4 justify-center">
+          {categories.map((cat) => {
+            const count = cat.value === 'all' 
+              ? news.length 
+              : news.filter(n => n.category === cat.value).length
+
+            return (
+              <motion.button
+                key={cat.value}
+                onClick={() => setActiveCategory(cat.value)}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-8 py-4 rounded-2xl font-bold transition-all shadow-lg ${
+                  activeCategory === cat.value
+                    ? `bg-gradient-to-r ${cat.color} text-white shadow-2xl`
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-xl'
+                }`}
+              >
+                <span className="text-xl mr-2">{cat.icon}</span>
+                <span className="text-lg">{cat.label[locale]}</span>
+                <span className="ml-2 text-sm opacity-75">({count})</span>
+              </motion.button>
+            )
+          })}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
-          <h2 className="text-4xl font-bold mb-6">{isAr ? 'ابق على اطلاع' : 'Stay Updated'}</h2>
-          <p className="text-xl mb-8">{isAr ? 'اشترك للحصول على آخر الأخبار' : 'Subscribe for latest news'}</p>
-          <div className="flex gap-4 justify-center">
-            <input type="email" placeholder={isAr ? 'بريدك الإلكتروني' : 'Your email'} className="px-6 py-4 rounded-xl w-full max-w-md text-gray-900" />
-            <button className="btn bg-white text-blue-600 px-8 py-4 hover:bg-gray-100">{isAr ? 'اشترك' : 'Subscribe'}</button>
+      {/* News Grid */}
+      <section className="container mx-auto px-4 py-8 pb-20">
+        {loading ? (
+          <div className="text-center py-32">
+            <div className="inline-block animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-blue-600"></div>
+            <p className="mt-6 text-gray-600 dark:text-gray-400 text-xl font-semibold">
+              {isAr ? 'جارِ التحميل...' : 'Loading...'}
+            </p>
           </div>
-        </div>
+        ) : filteredNews.length === 0 ? (
+          <div className="text-center py-32">
+            <div className="text-8xl mb-6">📰</div>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              {isAr ? 'لا توجد أخبار' : 'No News Found'}
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+              {isAr ? 'لم نجد أخباراً في هذا التصنيف' : 'No news found in this category'}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              {isAr 
+                ? '💡 تأكد من نشر الأخبار من لوحة التحكم (Published = ✅)' 
+                : '💡 Make sure to publish news from Admin Panel (Published = ✅)'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredNews.map((article, idx) => {
+              const category = categories.find(c => c.value === article.category) || categories[1]
+              const title = isAr ? article.titleAr : article.title
+              const excerpt = isAr ? article.excerptAr : article.excerpt
+
+              return (
+                <motion.div
+                  key={article.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  whileHover={{ y: -8 }}
+                  className="group"
+                >
+                  <Link href={`/news/${article.slug}`}>
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
+                      {/* Image */}
+                      {article.coverImage && (
+                        <div className="relative h-64 overflow-hidden">
+                          <Image
+                            src={article.coverImage}
+                            alt={title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          
+                          {/* Gradient Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                          
+                          {/* Badges */}
+                          <div className="absolute top-4 left-4 right-4 flex gap-2 flex-wrap">
+                            <span className={`px-4 py-2 bg-gradient-to-r ${category.color} text-white rounded-full text-xs font-bold flex items-center gap-2 shadow-lg`}>
+                              <span>{category.icon}</span>
+                              <span>{category.label[locale]}</span>
+                            </span>
+                            
+                            {article.breaking && (
+                              <motion.span
+                                animate={{ scale: [1, 1.1, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                                className="px-4 py-2 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg"
+                              >
+                                🔥 {isAr ? 'عاجل' : 'Breaking'}
+                              </motion.span>
+                            )}
+                            
+                            {article.trending && (
+                              <span className="px-4 py-2 bg-yellow-500 text-white rounded-full text-xs font-bold shadow-lg">
+                                📈 {isAr ? 'رائج' : 'Trending'}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Views Counter */}
+                          <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-2 rounded-full">
+                            <span className="text-white text-xs">👁️</span>
+                            <span className="text-white text-xs font-bold">{article.viewsCount || 0}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="p-6">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">
+                          {title}
+                        </h3>
+                        
+                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 leading-relaxed">
+                          {excerpt}
+                        </p>
+
+                        {/* Tags */}
+                        {article.tags && article.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {article.tags.slice(0, 3).map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-semibold"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {new Date(article.publishedAt || article.createdAt).toLocaleDateString(locale, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+
+                          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold group-hover:gap-3 transition-all">
+                            <span>{isAr ? 'اقرأ' : 'Read'}</span>
+                            <svg
+                              className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d={isAr ? 'M11 19l-7-7 7-7m8 14l-7-7 7-7' : 'M13 7l5 5-5 5M6 12h12'}
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
+      {/* WhatsApp Button */}
       <WhatsAppButton />
     </div>
   )

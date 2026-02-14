@@ -2,27 +2,94 @@
 
 // ═══════════════════════════════════════════════════════════════════════
 // 📄 ملف: app/tours/[slug]/page.jsx
-// الوصف: صفحة تفاصيل الرحلة مع نظام إرسال إيميل احترافي
+// الوصف: صفحة تفاصيل الرحلة - تقرأ من Database
+// ✅ UPDATED: Fix params Promise + Better error parsing (no {})
 // ═══════════════════════════════════════════════════════════════════════
 
+import React, { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { use, useMemo, useState } from 'react'
-import { getTourBySlug } from '@/data/tours-complete'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import ContactModal from '@/components/ContactModal'
+import BookingModal from '@/components/BookingModal'
 import { useApp } from '@/contexts/AppContext'
 
 export default function TourDetailsPage({ params }) {
   const { locale, t, isRTL, isDark } = useApp()
   const isAr = locale === 'ar'
 
-  // Next.js 15 params
-  const resolvedParams = use(params)
-  const tour = getTourBySlug(resolvedParams.slug)
+  // ✅ FIX: params عندك Promise، لازم نفكّه بـ React.use()
+  const resolvedParams = React.use(params)
 
+  // ✅ NEW: Database state
+  const [tour, setTour] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
 
+  // ✅ Fetch tour from database
+  useEffect(() => {
+    const fetchTour = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        console.log('🔄 Fetching tour:', resolvedParams.slug)
+
+        const response = await fetch(`/api/tours/${resolvedParams.slug}`)
+
+        console.log('📡 API Response status:', response.status)
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.log('❌ Tour not found in database')
+            setTour(null)
+            return
+          }
+
+          // ✅ FIX: لا تفترض أنه JSON دائماً (قد يرجع HTML/فارغ)
+          const raw = await response.text()
+          let errorData = {}
+          try {
+            errorData = JSON.parse(raw)
+          } catch {
+            // not JSON
+          }
+
+          console.error('❌ API Error:', {
+            status: response.status,
+            errorData,
+            raw: raw?.slice?.(0, 500)
+          })
+
+          throw new Error(errorData.error || `HTTP ${response.status}`)
+        }
+
+        const result = await response.json()
+        console.log('📦 API Result:', result)
+
+        if (result.success && result.data) {
+          console.log('✅ Tour loaded:', result.data.title)
+          setTour(result.data)
+        } else {
+          throw new Error(result.error || 'Failed to fetch tour')
+        }
+      } catch (err) {
+        console.error('❌ Error fetching tour:', err)
+        setError(err.message)
+        setTour(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (resolvedParams.slug) {
+      fetchTour()
+    }
+  }, [resolvedParams.slug])
+
+  // Translations helper
   const tt = (key, fallback) => {
     try {
       const v = t?.(key)
@@ -33,13 +100,52 @@ export default function TourDetailsPage({ params }) {
     }
   }
 
-  const pick = (obj, fallbackAr, fallbackEn) => {
-    if (!obj) return isAr ? fallbackAr : fallbackEn
-    return obj[locale] || obj.en || obj.ar || (isAr ? fallbackAr : fallbackEn)
+  const labels = useMemo(() => {
+    return {
+      home: tt('nav.home', isAr ? 'الرئيسية' : 'Home'),
+      tours: tt('nav.tours', isAr ? 'الرحلات' : 'Tours'),
+      featured: tt('tours.featured', isAr ? 'مميز' : 'Featured'),
+      discount: tt('tours.discount', isAr ? 'خصم' : 'OFF'),
+      days: tt('tours.days', isAr ? 'أيام' : 'days'),
+
+      highlightsTitle: tt('tourDetails.highlights', isAr ? 'أبرز المعالم' : 'Highlights'),
+      includedTitle: tt('tourDetails.included', isAr ? 'ما يشمله السعر' : "What's Included"),
+      notIncludedTitle: tt('tourDetails.notIncluded', isAr ? 'ما لا يشمله السعر' : 'Not Included'),
+
+      save: tt('tours.save', isAr ? 'وفر' : 'Save'),
+      perPerson: tt('tours.perPerson', isAr ? '/ للشخص' : '/ per person'),
+      taxesNote: tt('tourDetails.taxesIncluded', isAr ? 'الأسعار شاملة جميع الضرائب' : 'Prices include all taxes'),
+
+      bookWhatsapp: tt('tourDetails.bookWhatsapp', isAr ? 'احجز عبر واتساب' : 'Book on WhatsApp'),
+      emailUs: tt('tourDetails.emailUs', isAr ? 'راسلنا عبر الإيميل' : 'Email Us'),
+
+      instantBooking: tt('tourDetails.instantBooking', isAr ? 'حجز فوري مضمون' : 'Instant booking guaranteed'),
+      support: tt('tourDetails.support', isAr ? 'دعم 24/7' : '24/7 Support'),
+
+      backToTours: tt('tourDetails.backToTours', isAr ? 'العودة لجميع الرحلات' : 'Back to all tours')
+    }
+  }, [locale])
+
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Loading State
+  // ═══════════════════════════════════════════════════════════════
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-8 border-green-200 dark:border-green-800 border-t-green-600 dark:border-t-green-400 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {tt('loading', isAr ? 'جاري التحميل...' : 'Loading...')}
+          </h2>
+        </div>
+      </div>
+    )
   }
 
-  // لو ما لقى الرحلة
-  if (!tour) {
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Tour Not Found
+  // ═══════════════════════════════════════════════════════════════
+  if (!tour && !loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
         <div className="text-center max-w-md mx-auto px-4">
@@ -76,45 +182,37 @@ export default function TourDetailsPage({ params }) {
     )
   }
 
-  const hasDiscount = tour.originalPrice && tour.originalPrice > tour.price
-  const discountPercent = hasDiscount ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100) : 0
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Data Mapping from Database
+  // ═══════════════════════════════════════════════════════════════
+  const title = isAr ? (tour.titleAr || tour.title) : (tour.title || tour.titleAr)
+  const description = isAr ? (tour.descriptionAr || tour.description) : (tour.description || tour.descriptionAr)
 
-  const title = pick(tour.title, 'رحلة سياحية', 'Tour')
-  const shortDesc = pick(tour.shortDesc, 'رحلة مميزة في سقطرى', 'A great trip in Socotra')
-  const highlights = (tour.highlights?.[locale] || tour.highlights?.en || tour.highlights?.ar || [])
-  const included = (tour.included?.[locale] || tour.included?.en || tour.included?.ar || [])
-  const notIncluded = (tour.notIncluded?.[locale] || tour.notIncluded?.en || tour.notIncluded?.ar || [])
+  // Clean HTML from description
+  const shortDesc = description
+    .replace(/<[^>]*>/g, '')
+    .substring(0, 150)
+    .trim() + (description.length > 150 ? '...' : '')
 
-  const labels = useMemo(() => {
-    return {
-      home: tt('nav.home', isAr ? 'الرئيسية' : 'Home'),
-      tours: tt('nav.tours', isAr ? 'الرحلات' : 'Tours'),
-      featured: tt('tours.featured', isAr ? 'مميز' : 'Featured'),
-      discount: tt('tours.discount', isAr ? 'خصم' : 'OFF'),
-      days: tt('tours.days', isAr ? 'أيام' : 'days'),
+  const hasDiscount = tour.discount && tour.discount > 0
+  const discountPercent = Math.round(tour.discount || 0)
+  const finalPrice = hasDiscount
+    ? tour.price - (tour.price * tour.discount / 100)
+    : tour.price
 
-      highlightsTitle: tt('tourDetails.highlights', isAr ? 'أبرز المعالم' : 'Highlights'),
-      includedTitle: tt('tourDetails.included', isAr ? 'ما يشمله السعر' : 'What’s Included'),
-      notIncludedTitle: tt('tourDetails.notIncluded', isAr ? 'ما لا يشمله السعر' : 'Not Included'),
+  // Images
+  const coverImage = tour.coverImage ||
+    (tour.images && tour.images.length > 0 ? tour.images[0] : null) ||
+    '/img/default-tour.jpg'
 
-      save: tt('tours.save', isAr ? 'وفر' : 'Save'),
-      perPerson: tt('tours.perPerson', isAr ? '/ للشخص' : '/ per person'),
-      taxesNote: tt('tourDetails.taxesIncluded', isAr ? 'الأسعار شاملة جميع الضرائب' : 'Prices include all taxes'),
+  // Arrays (ensure they exist)
+  const includes = tour.includes || []
+  const excludes = tour.excludes || []
 
-      bookWhatsapp: tt('tourDetails.bookWhatsapp', isAr ? 'احجز عبر واتساب' : 'Book on WhatsApp'),
-      emailUs: tt('tourDetails.emailUs', isAr ? 'راسلنا عبر الإيميل' : 'Email Us'),
-
-      instantBooking: tt('tourDetails.instantBooking', isAr ? 'حجز فوري مضمون' : 'Instant booking guaranteed'),
-      support: tt('tourDetails.support', isAr ? 'دعم 24/7' : '24/7 Support'),
-
-      backToTours: tt('tourDetails.backToTours', isAr ? 'العودة لجميع الرحلات' : 'Back to all tours')
-    }
-  }, [locale])
-
-  // نص واتساب
+  // WhatsApp text
   const whatsappText = isAr
     ? `مرحباً! أريد حجز رحلة: ${title}`
-    : `Hi! I’d like to book the tour: ${title}`
+    : `Hi! I'd like to book the tour: ${title}`
 
   return (
     <>
@@ -123,7 +221,7 @@ export default function TourDetailsPage({ params }) {
         <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
           <div className="absolute inset-0">
             <Image
-              src={tour.images?.main || '/img/default-tour.jpg'}
+              src={coverImage}
               alt={title}
               fill
               className="object-cover"
@@ -187,7 +285,7 @@ export default function TourDetailsPage({ params }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="font-bold text-lg">
-                      {tour.duration?.days || 0} {labels.days}
+                      {tour.duration || 0} {labels.days}
                     </span>
                   </div>
                 </div>
@@ -204,63 +302,56 @@ export default function TourDetailsPage({ params }) {
               {/* Left */}
               <div className="lg:col-span-2 space-y-10">
 
-                {/* Highlights */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <span className="text-4xl">✨</span>
-                    {labels.highlightsTitle}
-                  </h2>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {highlights.map((highlight, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10 p-4 rounded-xl border border-green-100 dark:border-green-800/30"
-                      >
-                        <svg className="w-6 h-6 text-green-600 dark:text-green-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-gray-700 dark:text-gray-200 font-medium leading-relaxed">
-                          {highlight}
-                        </span>
-                      </div>
-                    ))}
+                {/* Description */}
+                {description && (
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                      {isAr ? 'نبذة عن الرحلة' : 'About This Tour'}
+                    </h2>
+                    <div
+                      className="prose dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
                   </div>
-                </div>
+                )}
 
                 {/* Included */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <span className="text-4xl">✅</span>
-                    {labels.includedTitle}
-                  </h2>
+                {includes.length > 0 && (
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                      <span className="text-4xl">✅</span>
+                      {labels.includedTitle}
+                    </h2>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {included.map((item, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-200">{item}</span>
-                      </div>
-                    ))}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {includes.map((item, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-200">{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Not Included */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <span className="text-4xl">❌</span>
-                    {labels.notIncludedTitle}
-                  </h2>
+                {excludes.length > 0 && (
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                      <span className="text-4xl">❌</span>
+                      {labels.notIncludedTitle}
+                    </h2>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {notIncluded.map((item, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-200">{item}</span>
-                      </div>
-                    ))}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {excludes.map((item, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-200">{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
               </div>
 
@@ -270,16 +361,16 @@ export default function TourDetailsPage({ params }) {
                   <div className="mb-8 pb-8 border-b-2 border-gray-100 dark:border-gray-700">
                     {hasDiscount && (
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-gray-400 line-through text-xl">${tour.originalPrice}</span>
+                        <span className="text-gray-400 line-through text-xl">${Math.round(tour.price)}</span>
                         <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-bold px-3 py-1 rounded-full">
-                          {labels.save} ${tour.originalPrice - tour.price}
+                          {labels.save} ${Math.round(tour.price - finalPrice)}
                         </span>
                       </div>
                     )}
 
                     <div className="flex items-baseline gap-3 mb-2">
                       <span className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        ${tour.price}
+                        ${Math.round(finalPrice)}
                       </span>
                       <span className="text-gray-600 dark:text-gray-300 text-lg">
                         {labels.perPerson}
@@ -292,6 +383,16 @@ export default function TourDetailsPage({ params }) {
                   </div>
 
                   <div className="space-y-4 mb-8">
+                    {/* Book Now Button - PRIMARY */}
+                    <button
+                      onClick={() => setIsBookingModalOpen(true)}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-5 rounded-xl font-bold text-xl flex items-center justify-center gap-3 shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <span className="text-2xl">✨</span>
+                      <span>{isAr ? 'احجز الآن' : 'Book Now'}</span>
+                    </button>
+
+                    {/* WhatsApp Button - SECONDARY */}
                     <a
                       href={`https://wa.me/967772371581?text=${encodeURIComponent(whatsappText)}`}
                       target="_blank"
@@ -304,6 +405,7 @@ export default function TourDetailsPage({ params }) {
                       {labels.bookWhatsapp}
                     </a>
 
+                    {/* Email Button - TERTIARY */}
                     <button
                       onClick={() => setIsModalOpen(true)}
                       className="w-full border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all hover:border-green-500 hover:text-green-600 dark:hover:text-green-400"
@@ -361,7 +463,13 @@ export default function TourDetailsPage({ params }) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         tourTitle={title}
-        tourPrice={tour.price}
+        tourPrice={Math.round(finalPrice)}
+      />
+
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        tour={tour}
       />
     </>
   )

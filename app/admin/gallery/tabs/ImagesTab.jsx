@@ -1,0 +1,839 @@
+'use client'
+
+// ═══════════════════════════════════════════════════════════════
+// 📸 IMAGES TAB - Gallery Management
+// تبويب الصور - إدارة صور المعرض
+// ═══════════════════════════════════════════════════════════════
+
+import { useState, useEffect } from 'react'
+import { useApp } from '@/contexts/AppContext'
+import { useToast } from '@/components/admin/Toast'
+import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
+
+export default function ImagesTab() {
+  const { locale } = useApp()
+  const { success, error: showError, info } = useToast()
+  const isAr = locale === 'ar'
+
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [modalMode, setModalMode] = useState('create')
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(null)
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState(null)
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    featured: 0,
+    byCategory: {}
+  })
+
+  const [formData, setFormData] = useState({
+    title: '',
+    titleAr: '',
+    description: '',
+    descriptionAr: '',
+    url: '',
+    thumbnail: '',
+    category: 'DESTINATIONS',
+    tags: [],
+    width: null,
+    height: null,
+    featured: false,
+    isActive: true
+  })
+
+  const categories = [
+    { value: 'DESTINATIONS', label: { ar: 'المعالم', en: 'Destinations' }, icon: '🏝️', gradient: 'from-blue-500 to-cyan-600' },
+    { value: 'TOURS', label: { ar: 'الجولات', en: 'Tours' }, icon: '🚀', gradient: 'from-purple-500 to-pink-600' },
+    { value: 'NATURE', label: { ar: 'الطبيعة', en: 'Nature' }, icon: '🌿', gradient: 'from-green-500 to-emerald-600' },
+    { value: 'CULTURE', label: { ar: 'الثقافة', en: 'Culture' }, icon: '🏛️', gradient: 'from-orange-500 to-red-600' },
+    { value: 'WILDLIFE', label: { ar: 'الحياة البرية', en: 'Wildlife' }, icon: '🦎', gradient: 'from-yellow-500 to-amber-600' },
+    { value: 'PEOPLE', label: { ar: 'الناس', en: 'People' }, icon: '👥', gradient: 'from-indigo-500 to-purple-600' }
+  ]
+
+  useEffect(() => {
+    fetchImages()
+  }, [searchTerm, categoryFilter, statusFilter, currentPage])
+
+  const fetchImages = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: 20,
+        ...(searchTerm && { search: searchTerm }),
+        ...(categoryFilter !== 'all' && { category: categoryFilter }),
+        ...(statusFilter !== 'all' && { isActive: statusFilter })
+      })
+
+      const response = await fetch(`/api/admin/gallery?${params}`)
+      const result = await response.json()
+
+      if (result.success) {
+        setImages(result.data.images)
+        setPagination(result.data.pagination)
+        
+        // Calculate stats
+        const total = result.data.pagination.total
+        const active = result.data.images.filter(img => img.isActive).length
+        const featured = result.data.images.filter(img => img.featured).length
+        
+        const byCategory = {}
+        categories.forEach(cat => {
+          byCategory[cat.value] = result.data.images.filter(img => img.category === cat.value).length
+        })
+        
+        setStats({ total, active, featured, byCategory })
+      }
+    } catch (error) {
+      console.error('Failed to fetch images:', error)
+      showError(isAr ? 'فشل في جلب البيانات' : 'Failed to fetch data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreate = () => {
+    setModalMode('create')
+    setSelectedImage(null)
+    setFormData({
+      title: '',
+      titleAr: '',
+      description: '',
+      descriptionAr: '',
+      url: '',
+      thumbnail: '',
+      category: 'DESTINATIONS',
+      tags: [],
+      width: null,
+      height: null,
+      featured: false,
+      isActive: true
+    })
+    setShowModal(true)
+  }
+
+  const handleEdit = (image) => {
+    setModalMode('edit')
+    setSelectedImage(image)
+    setFormData({
+      title: image.title || '',
+      titleAr: image.titleAr || '',
+      description: image.description || '',
+      descriptionAr: image.descriptionAr || '',
+      url: image.url || '',
+      thumbnail: image.thumbnail || '',
+      category: image.category,
+      tags: image.tags || [],
+      width: image.width,
+      height: image.height,
+      featured: image.featured,
+      isActive: image.isActive
+    })
+    setShowModal(true)
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+
+    try {
+      const url = '/api/admin/gallery'
+      const method = modalMode === 'create' ? 'POST' : 'PUT'
+      const body = {
+        ...formData,
+        ...(modalMode === 'edit' && { id: selectedImage.id })
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setShowModal(false)
+        fetchImages()
+        success(
+          modalMode === 'create'
+            ? (isAr ? 'تم إضافة الصورة بنجاح! 🎉' : 'Image added successfully! 🎉')
+            : (isAr ? 'تم تحديث الصورة بنجاح! ✨' : 'Image updated successfully! ✨')
+        )
+      } else {
+        showError(result.error || (isAr ? 'فشلت العملية' : 'Operation failed'))
+      }
+    } catch (error) {
+      console.error('Failed to save image:', error)
+      showError(isAr ? 'فشل في حفظ البيانات' : 'Failed to save data')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (imageId) => {
+    if (!confirm(isAr ? 'هل أنت متأكد من الحذف؟' : 'Are you sure you want to delete?')) {
+      return
+    }
+
+    setDeleting(imageId)
+    try {
+      const response = await fetch('/api/admin/gallery', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: imageId })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        fetchImages()
+        success(isAr ? 'تم حذف الصورة! 🗑️' : 'Image deleted! 🗑️')
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error)
+      showError(isAr ? 'فشل في الحذف' : 'Failed to delete')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const handleToggleFeatured = async (imageId, currentStatus) => {
+    try {
+      const response = await fetch('/api/admin/gallery', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: imageId, featured: !currentStatus })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        fetchImages()
+        success(!currentStatus ? (isAr ? 'تم التمييز! ⭐' : 'Featured! ⭐') : (isAr ? 'تم إلغاء التمييز' : 'Unfeatured'))
+      }
+    } catch (error) {
+      console.error('Failed to toggle featured:', error)
+    }
+  }
+
+  const handleToggleActive = async (imageId, currentStatus) => {
+    try {
+      const response = await fetch('/api/admin/gallery', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: imageId, isActive: !currentStatus })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        fetchImages()
+        success(!currentStatus ? (isAr ? 'تم التفعيل! ✅' : 'Activated! ✅') : (isAr ? 'تم التعطيل' : 'Deactivated'))
+      }
+    } catch (error) {
+      console.error('Failed to toggle status:', error)
+    }
+  }
+
+  const getCategoryBadge = (category) => {
+    const cat = categories.find(c => c.value === category)
+    if (!cat) return null
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${cat.gradient} text-white`}>
+        {cat.icon} {cat.label[locale]}
+      </span>
+    )
+  }
+
+  return (
+      <div className="space-y-6">
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
+            {isAr ? '🖼️ إدارة المعرض' : '🖼️ Gallery Management'}
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            {isAr ? 'إدارة صور ومحتويات المعرض' : 'Manage gallery images and content'}
+          </p>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          {/* Total Images */}
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-blue-100 font-semibold">{isAr ? 'الإجمالي' : 'Total'}</span>
+              <span className="text-3xl">🖼️</span>
+            </div>
+            <div className="text-4xl font-black">{stats.total}</div>
+            <div className="text-blue-100 text-sm mt-2">{isAr ? 'صورة' : 'Images'}</div>
+          </motion.div>
+
+          {/* Active */}
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-green-100 font-semibold">{isAr ? 'نشطة' : 'Active'}</span>
+              <span className="text-3xl">✅</span>
+            </div>
+            <div className="text-4xl font-black">{stats.active}</div>
+            <div className="text-green-100 text-sm mt-2">{isAr ? 'صورة نشطة' : 'Active images'}</div>
+          </motion.div>
+
+          {/* Featured */}
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-yellow-100 font-semibold">{isAr ? 'مميزة' : 'Featured'}</span>
+              <span className="text-3xl">⭐</span>
+            </div>
+            <div className="text-4xl font-black">{stats.featured}</div>
+            <div className="text-yellow-100 text-sm mt-2">{isAr ? 'صورة مميزة' : 'Featured images'}</div>
+          </motion.div>
+
+          {/* Categories */}
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-purple-100 font-semibold">{isAr ? 'التصنيفات' : 'Categories'}</span>
+              <span className="text-3xl">📂</span>
+            </div>
+            <div className="text-4xl font-black">{categories.length}</div>
+            <div className="text-purple-100 text-sm mt-2">{isAr ? 'تصنيف' : 'Categories'}</div>
+          </motion.div>
+        </motion.div>
+
+        {/* Toolbar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="search"
+                placeholder={isAr ? '🔍 بحث بالعنوان...' : '🔍 Search by title...'}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-3 pr-12 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{isAr ? 'جميع التصنيفات' : 'All Categories'}</option>
+              {categories.map(cat => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.icon} {cat.label[locale]}
+                </option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{isAr ? 'الكل' : 'All'}</option>
+              <option value="true">✅ {isAr ? 'نشط' : 'Active'}</option>
+              <option value="false">❌ {isAr ? 'معطل' : 'Inactive'}</option>
+            </select>
+
+            {/* Add Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCreate}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{isAr ? 'إضافة صورة' : 'Add Image'}</span>
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full"
+            />
+          </div>
+        )}
+
+        {/* Gallery Grid */}
+        {!loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {images.length === 0 ? (
+              <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl">
+                <div className="text-6xl mb-4">🖼️</div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {isAr ? 'لا توجد صور' : 'No Images'}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {isAr ? 'ابدأ بإضافة صور للمعرض' : 'Start by adding images to the gallery'}
+                </p>
+                <button
+                  onClick={handleCreate}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-xl transition-all"
+                >
+                  {isAr ? '➕ إضافة أول صورة' : '➕ Add First Image'}
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {images.map((image, index) => (
+                    <motion.div
+                      key={image.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all"
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
+                        {image.url ? (
+                          <Image
+                            src={image.thumbnail || image.url}
+                            alt={image.title || 'Gallery Image'}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            unoptimized={true}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-6xl">
+                            📸
+                          </div>
+                        )}
+
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(image)}
+                              className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(image.id)}
+                              disabled={deleting === image.id}
+                              className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all disabled:opacity-50"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Badges */}
+                        {image.featured && (
+                          <div className="absolute top-3 left-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                            ⭐ {isAr ? 'مميزة' : 'Featured'}
+                          </div>
+                        )}
+
+                        {!image.isActive && (
+                          <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            ❌ {isAr ? 'معطل' : 'Inactive'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="p-4">
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-2 truncate">
+                          {image.title || image.titleAr || (isAr ? 'بدون عنوان' : 'Untitled')}
+                        </h3>
+                        
+                        <div className="flex items-center gap-2 mb-3">
+                          {getCategoryBadge(image.category)}
+                        </div>
+
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                          {image.description || image.descriptionAr || (isAr ? 'لا يوجد وصف' : 'No description')}
+                        </p>
+
+                        {/* Tags */}
+                        {image.tags && image.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {image.tags.slice(0, 3).map((tag, i) => (
+                              <span key={i} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs">
+                                #{tag}
+                              </span>
+                            ))}
+                            {image.tags.length > 3 && (
+                              <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs">
+                                +{image.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Quick Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleToggleFeatured(image.id, image.featured)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                              image.featured
+                                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            ⭐ {image.featured ? (isAr ? 'مميزة' : 'Featured') : (isAr ? 'تمييز' : 'Feature')}
+                          </button>
+                          <button
+                            onClick={() => handleToggleActive(image.id, image.isActive)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                              image.isActive
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                            }`}
+                          >
+                            {image.isActive ? '✅' : '❌'} {image.isActive ? (isAr ? 'نشط' : 'Active') : (isAr ? 'معطل' : 'Inactive')}
+                          </button>
+                        </div>
+
+                        {/* Date */}
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                          {new Date(image.createdAt).toLocaleDateString(locale)}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50"
+                >
+                  {isAr ? 'السابق' : 'Previous'}
+                </button>
+                <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                  {currentPage} / {pagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                  disabled={currentPage === pagination.totalPages}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50"
+                >
+                  {isAr ? 'التالي' : 'Next'}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Modal */}
+        <AnimatePresence>
+          {showModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
+                  <h2 className="text-2xl font-black">
+                    {modalMode === 'create'
+                      ? (isAr ? '➕ إضافة صورة جديدة' : '➕ Add New Image')
+                      : (isAr ? '✏️ تعديل الصورة' : '✏️ Edit Image')}
+                  </h2>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleSave} className="p-6 space-y-6">
+                  
+                  {/* Image Preview */}
+                  {formData.url && (
+                    <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                      <Image
+                        src={formData.thumbnail || formData.url}
+                        alt="Preview"
+                        fill
+                        className="object-cover"
+                        sizes="800px"
+                        unoptimized={true}
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Title */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'العنوان (English)' : 'Title (English)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Title Arabic */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'العنوان (عربي)' : 'Title (Arabic)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.titleAr}
+                        onChange={(e) => setFormData({...formData, titleAr: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Description */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الوصف (English)' : 'Description (English)'}
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Description Arabic */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الوصف (عربي)' : 'Description (Arabic)'}
+                      </label>
+                      <textarea
+                        value={formData.descriptionAr}
+                        onChange={(e) => setFormData({...formData, descriptionAr: e.target.value})}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Image URL */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'رابط الصورة (مطلوب)' : 'Image URL (Required)'}
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        value={formData.url}
+                        onChange={(e) => setFormData({...formData, url: e.target.value})}
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Thumbnail URL */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'رابط الصورة المصغرة (اختياري)' : 'Thumbnail URL (Optional)'}
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.thumbnail}
+                        onChange={(e) => setFormData({...formData, thumbnail: e.target.value})}
+                        placeholder="https://example.com/thumb.jpg"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'التصنيف' : 'Category'}
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      >
+                        {categories.map(cat => (
+                          <option key={cat.value} value={cat.value}>
+                            {cat.icon} {cat.label[locale]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الوسوم (مفصولة بفاصلة)' : 'Tags (comma separated)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.tags.join(', ')}
+                        onChange={(e) => setFormData({...formData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
+                        placeholder="nature, sunset, beach"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Dimensions */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'العرض (px)' : 'Width (px)'}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.width || ''}
+                        onChange={(e) => setFormData({...formData, width: parseInt(e.target.value) || null})}
+                        placeholder="1920"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+                        {isAr ? 'الارتفاع (px)' : 'Height (px)'}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.height || ''}
+                        onChange={(e) => setFormData({...formData, height: parseInt(e.target.value) || null})}
+                        placeholder="1080"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white border-2 border-transparent focus:border-blue-500 transition-all"
+                      />
+                    </div>
+
+                    {/* Checkboxes */}
+                    <div className="md:col-span-2 flex gap-6">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.featured}
+                          onChange={(e) => setFormData({...formData, featured: e.target.checked})}
+                          className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-bold">
+                          ⭐ {isAr ? 'صورة مميزة' : 'Featured Image'}
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.isActive}
+                          onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                          className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-bold">
+                          ✅ {isAr ? 'نشط (يظهر في الموقع)' : 'Active (Show on site)'}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                    >
+                      {isAr ? 'إلغاء' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {saving ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>{isAr ? 'جارِ الحفظ...' : 'Saving...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>💾</span>
+                          <span>{isAr ? 'حفظ' : 'Save'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+  )
+}

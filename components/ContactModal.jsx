@@ -78,19 +78,29 @@ export default function ContactModal({ isOpen, onClose, tourTitle, tourPrice }) 
     setErrorMessage('')
 
     try {
-      const response = await fetch('/api/send-email', {
+      // ✅ Use new messages API that saves to database
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          tourTitle,
-          tourPrice
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: tourTitle 
+            ? (isAr ? `استفسار عن: ${tourTitle}` : `Inquiry about: ${tourTitle}`)
+            : (isAr ? 'استفسار عام' : 'General Inquiry'),
+          message: tourTitle 
+            ? `${formData.message}\n\n---\n${isAr ? 'الجولة' : 'Tour'}: ${tourTitle}\n${isAr ? 'السعر' : 'Price'}: $${tourPrice}`
+            : formData.message
         })
       })
 
+      console.log('📧 Response status:', response.status)
       const data = await response.json()
+      console.log('📦 Response data:', data)
 
-      if (response.ok) {
+      if (response.ok && data.success) {
+        console.log('✅ Message sent successfully:', data.data)
         setStatus('success')
         setFormData({ name: '', email: '', phone: '', message: '' })
 
@@ -99,9 +109,11 @@ export default function ContactModal({ isOpen, onClose, tourTitle, tourPrice }) 
           setStatus('idle')
         }, 3000)
       } else {
-        throw new Error(data.message || (isAr ? 'حدث خطأ في الإرسال' : 'Failed to send'))
+        console.error('❌ Message failed:', data.error || data.message)
+        throw new Error(data.error || data.message || (isAr ? 'حدث خطأ في الإرسال' : 'Failed to send'))
       }
     } catch (error) {
+      console.error('❌ Send error:', error)
       setStatus('error')
       setErrorMessage(error.message || (isAr ? 'حدث خطأ في الإرسال. حاول مرة أخرى.' : 'Failed to send. Please try again.'))
 

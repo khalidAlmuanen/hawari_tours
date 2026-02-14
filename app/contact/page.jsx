@@ -28,15 +28,43 @@ export default function ContactPage() {
     e.preventDefault()
     setStatus('sending')
 
-    // محاكاة الإرسال
-    setTimeout(() => {
-      setStatus('success')
-      setFormData({ name: '', email: '', phone: '', inquiryType: 'general', message: '' })
-      
-      setTimeout(() => {
-        setStatus('idle')
-      }, 5000)
-    }, 2000)
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          subject: formData.inquiryType === 'general' 
+            ? (isAr ? 'استفسار عام' : 'General Inquiry')
+            : formData.inquiryType === 'tour' 
+            ? (isAr ? 'استفسار عن جولة' : 'Tour Inquiry')
+            : formData.inquiryType === 'booking' 
+            ? (isAr ? 'استفسار عن حجز' : 'Booking Inquiry')
+            : (isAr ? 'شكوى' : 'Complaint'),
+          message: formData.message
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setStatus('success')
+        setFormData({ name: '', email: '', phone: '', inquiryType: 'general', message: '' })
+        
+        setTimeout(() => {
+          setStatus('idle')
+        }, 5000)
+      } else {
+        setStatus('error')
+        setTimeout(() => setStatus('idle'), 3000)
+      }
+    } catch (error) {
+      console.error('Message send error:', error)
+      setStatus('error')
+      setTimeout(() => setStatus('idle'), 3000)
+    }
   }
 
   const handleChange = (e) => {

@@ -2,12 +2,8 @@
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🗺️ Tours Page - Hawari Tours (احترافية 100%)
-// ✅ متطلبات PDF:
-//    1. Guided Tours (Adventure, Cultural, Eco-tours)
-//    2. Custom Tours
-//    3. Travel Packages
-//    4. Booking and Inquiries
-// ✨ تصميم عصري وفخم ومبهر جداً
+// ✅ UPDATED: Now reads from Database instead of static file
+// ✅ نفس التصميم بالضبط - فقط تغيير مصدر البيانات
 // ═══════════════════════════════════════════════════════════════════════
 
 import Image from 'next/image'
@@ -15,25 +11,29 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import TourCard from '@/components/TourCard'
-import { getAllTours, getToursByCategory } from '@/data/tours-complete'
 
 export default function ToursPage() {
   const { locale, isDark } = useApp()
   
+  // ═══════════════════════════════════════════════════════════════
   // State Management
+  // ═══════════════════════════════════════════════════════════════
   const [activeCategory, setActiveCategory] = useState('all')
-  const [priceRange, setPriceRange] = useState([0, 2000])
+  const [priceRange, setPriceRange] = useState([0, 5000])
   const [selectedDifficulty, setSelectedDifficulty] = useState('all')
   const [selectedDuration, setSelectedDuration] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
   const [showFilters, setShowFilters] = useState(false)
-  const [tours, setTours] = useState(getAllTours())
-  const [filteredTours, setFilteredTours] = useState(tours)
-  const [showBookingModal, setShowBookingModal] = useState(false)
-  const [selectedTour, setSelectedTour] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  // ✅ NEW: Database state
+  const [tours, setTours] = useState([])
+  const [filteredTours, setFilteredTours] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // ═══════════════════════════════════════════════════════════════
-  // Tour Categories (من متطلبات PDF)
+  // Tour Categories (متوافقة مع Database Schema)
   // ═══════════════════════════════════════════════════════════════
   const tourCategories = [
     {
@@ -45,10 +45,10 @@ export default function ToursPage() {
         </svg>
       ),
       gradient: 'from-gray-500 to-gray-700',
-      count: tours.length
+      dbValue: null
     },
     {
-      id: 'adventure',
+      id: 'ADVENTURE',
       name: { ar: 'رحلات المغامرة', en: 'Adventure Tours' },
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,14 +56,10 @@ export default function ToursPage() {
         </svg>
       ),
       gradient: 'from-orange-500 to-red-600',
-      count: tours.filter(t => t.category === 'adventure').length,
-      description: {
-        ar: 'تخييم، تسلق، استكشاف',
-        en: 'Camping, Climbing, Exploration'
-      }
+      description: { ar: 'تخييم، تسلق، استكشاف', en: 'Camping, Climbing, Exploration' }
     },
     {
-      id: 'cultural',
+      id: 'CULTURAL',
       name: { ar: 'رحلات ثقافية', en: 'Cultural Tours' },
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,41 +67,51 @@ export default function ToursPage() {
         </svg>
       ),
       gradient: 'from-purple-500 to-pink-600',
-      count: tours.filter(t => t.category === 'cultural' || t.category === 'family').length,
-      description: {
-        ar: 'تراث، تقاليد، شعب',
-        en: 'Heritage, Traditions, People'
-      }
+      description: { ar: 'تراث، تقاليد، شعب', en: 'Heritage, Traditions, People' }
     },
     {
-      id: 'eco',
-      name: { ar: 'رحلات بيئية', en: 'Eco-Tours' },
+      id: 'NATURE',
+      name: { ar: 'رحلات طبيعية', en: 'Nature Tours' },
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
         </svg>
       ),
       gradient: 'from-green-500 to-emerald-600',
-      count: tours.filter(t => t.category === 'camping').length,
-      description: {
-        ar: 'طبيعة، بيئة، استدامة',
-        en: 'Nature, Environment, Sustainability'
-      }
+      description: { ar: 'طبيعة، بيئة، استدامة', en: 'Nature, Environment, Sustainability' }
     },
     {
-      id: 'marine',
-      name: { ar: 'رحلات بحرية', en: 'Marine Tours' },
+      id: 'BEACH',
+      name: { ar: 'رحلات شاطئية', en: 'Beach Tours' },
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
         </svg>
       ),
       gradient: 'from-blue-500 to-cyan-600',
-      count: tours.filter(t => t.category === 'marine').length,
-      description: {
-        ar: 'غطس، شواطئ، دلافين',
-        en: 'Diving, Beaches, Dolphins'
-      }
+      description: { ar: 'غطس، شواطئ، دلافين', en: 'Diving, Beaches, Dolphins' }
+    },
+    {
+      id: 'WILDLIFE',
+      name: { ar: 'حياة برية', en: 'Wildlife Tours' },
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      gradient: 'from-teal-500 to-green-600',
+      description: { ar: 'حيوانات، طيور، بيئة', en: 'Animals, Birds, Ecology' }
+    },
+    {
+      id: 'HERITAGE',
+      name: { ar: 'تراث', en: 'Heritage Tours' },
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      ),
+      gradient: 'from-indigo-500 to-purple-600',
+      description: { ar: 'مواقع أثرية، تاريخ', en: 'Archaeological, History' }
     },
     {
       id: 'custom',
@@ -116,69 +122,134 @@ export default function ToursPage() {
         </svg>
       ),
       gradient: 'from-indigo-500 to-purple-600',
-      count: '∞',
-      description: {
-        ar: 'صمم رحلتك الخاصة',
-        en: 'Design Your Own Trip'
-      }
+      description: { ar: 'صمم رحلتك الخاصة', en: 'Design Your Own Trip' },
+      isCustom: true
     }
   ]
 
   // ═══════════════════════════════════════════════════════════════
-  // Filter & Sort Functions
+  // ✅ Fetch tours from Database
   // ═══════════════════════════════════════════════════════════════
   useEffect(() => {
+    fetchTours()
+  }, [])
+
+  const fetchTours = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      console.log('🔄 Fetching tours from database...')
+      
+      const response = await fetch('/api/tours')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log(`✅ Fetched ${result.data.length} tours from database`)
+        setTours(result.data)
+      } else {
+        throw new Error(result.error || 'Failed to fetch tours')
+      }
+
+    } catch (err) {
+      console.error('❌ Error fetching tours:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Filter & Sort (متوافق مع Database)
+  // ═══════════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (loading || tours.length === 0) {
+      setFilteredTours([])
+      return
+    }
+
     let result = [...tours]
 
     // Filter by category
-    if (activeCategory !== 'all') {
-      if (activeCategory === 'cultural') {
-        result = result.filter(t => t.category === 'cultural' || t.category === 'family')
-      } else if (activeCategory === 'eco') {
-        result = result.filter(t => t.category === 'camping')
-      } else {
-        result = result.filter(t => t.category === activeCategory)
-      }
+    if (activeCategory !== 'all' && activeCategory !== 'custom') {
+      result = result.filter(t => t.category === activeCategory)
     }
 
     // Filter by price
-    result = result.filter(t => t.price >= priceRange[0] && t.price <= priceRange[1])
+    result = result.filter(t => {
+      const finalPrice = t.discount ? t.price - (t.price * t.discount / 100) : t.price
+      return finalPrice >= priceRange[0] && finalPrice <= priceRange[1]
+    })
 
     // Filter by difficulty
     if (selectedDifficulty !== 'all') {
-      result = result.filter(t => t.difficulty === selectedDifficulty)
+      result = result.filter(t => t.difficulty === selectedDifficulty.toUpperCase())
     }
 
     // Filter by duration
     if (selectedDuration !== 'all') {
-      const days = parseInt(selectedDuration)
-      result = result.filter(t => t.duration.days <= days)
+      const maxDays = parseInt(selectedDuration)
+      result = result.filter(t => t.duration <= maxDays)
+    }
+
+    // Filter by search
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase()
+      result = result.filter(t => 
+        (t.title && t.title.toLowerCase().includes(search)) ||
+        (t.titleAr && t.titleAr.includes(searchTerm)) ||
+        (t.description && t.description.toLowerCase().includes(search))
+      )
     }
 
     // Sort
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => a.price - b.price)
+        result.sort((a, b) => {
+          const priceA = a.discount ? a.price - (a.price * a.discount / 100) : a.price
+          const priceB = b.discount ? b.price - (b.price * b.discount / 100) : b.price
+          return priceA - priceB
+        })
         break
       case 'price-high':
-        result.sort((a, b) => b.price - a.price)
+        result.sort((a, b) => {
+          const priceA = a.discount ? a.price - (a.price * a.discount / 100) : a.price
+          const priceB = b.discount ? b.price - (b.price * b.discount / 100) : b.price
+          return priceB - priceA
+        })
         break
       case 'duration':
-        result.sort((a, b) => a.duration.days - b.duration.days)
+        result.sort((a, b) => a.duration - b.duration)
         break
       case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0))
         break
       default: // popular
-        result.sort((a, b) => b.reviewsCount - a.reviewsCount)
+        result.sort((a, b) => {
+          if (a.featured && !b.featured) return -1
+          if (!a.featured && b.featured) return 1
+          return (b.bookingsCount || 0) - (a.bookingsCount || 0)
+        })
     }
 
     setFilteredTours(result)
-  }, [activeCategory, priceRange, selectedDifficulty, selectedDuration, sortBy, tours])
+  }, [tours, activeCategory, priceRange, selectedDifficulty, selectedDuration, sortBy, searchTerm, loading])
 
   // ═══════════════════════════════════════════════════════════════
-  // Special Offers
+  // Helper Functions
   // ═══════════════════════════════════════════════════════════════
+  const getCategoryCount = (categoryId) => {
+    if (categoryId === 'all') return tours.length
+    if (categoryId === 'custom') return '∞'
+    return tours.filter(t => t.category === categoryId).length
+  }
+
+  // Special Offers
   const specialOffers = [
     {
       title: { ar: 'خصم الحجز المبكر', en: 'Early Bird Discount' },
@@ -203,13 +274,56 @@ export default function ToursPage() {
     }
   ]
 
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Loading State
+  // ═══════════════════════════════════════════════════════════════
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-8 border-green-200 dark:border-green-800 border-t-green-600 dark:border-t-green-400 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {locale === 'ar' ? 'جاري التحميل...' : 'Loading Tours...'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {locale === 'ar' ? 'جلب الرحلات من قاعدة البيانات' : 'Fetching tours from database'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ Error State
+  // ═══════════════════════════════════════════════════════════════
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-6">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            {locale === 'ar' ? 'خطأ في التحميل' : 'Error Loading Tours'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={fetchTours}
+            className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all"
+          >
+            {locale === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MAIN RENDER (نفس التصميم الأصلي 100%)
+  // ═══════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ═══════════════════════════════════════════════════════════════
-          Hero Section with Search
-          ═══════════════════════════════════════════════════════════════ */}
+      
+      {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0">
           <Image
             src="/img/tours/tour1.webp"
@@ -222,7 +336,6 @@ export default function ToursPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/70" />
         </div>
 
-        {/* Content */}
         <div className="relative z-10 container-custom text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full mb-6 animate-fade-in">
             <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -247,12 +360,14 @@ export default function ToursPage() {
               : 'From thrilling adventures to cultural journeys, we have something for every traveler'}
           </p>
 
-          {/* Quick Search Bar */}
+          {/* Quick Search */}
           <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl p-2 shadow-2xl">
             <div className="flex flex-col md:flex-row gap-2">
               <div className="flex-1">
                 <input
                   type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={locale === 'ar' ? 'ابحث عن رحلة...' : 'Search for a tour...'}
                   className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/60 focus:border-white/40 focus:ring-2 focus:ring-white/20 outline-none transition-all"
                 />
@@ -268,9 +383,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Special Offers Banner
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Special Offers Banner */}
       <section className="py-6 bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 dark:from-green-800 dark:via-blue-800 dark:to-purple-800">
         <div className="container-custom">
           <div className="flex items-center justify-center gap-8 flex-wrap">
@@ -293,9 +406,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Tour Categories (من متطلبات PDF)
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Tour Categories */}
       <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="container-custom">
           <div className="text-center mb-12">
@@ -310,7 +421,7 @@ export default function ToursPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {tourCategories.map((category) => (
               <button
                 key={category.id}
@@ -321,26 +432,22 @@ export default function ToursPage() {
                     : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:shadow-xl'
                 }`}
               >
-                {/* Icon */}
                 <div className={`mb-4 ${activeCategory === category.id ? 'text-white' : 'text-gray-400 dark:text-gray-500 group-hover:text-green-500'}`}>
                   {category.icon}
                 </div>
 
-                {/* Name */}
                 <h3 className="font-bold mb-2 text-sm">
                   {category.name[locale]}
                 </h3>
 
-                {/* Count Badge */}
                 <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
                   activeCategory === category.id
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                 }`}>
-                  {category.count} {locale === 'ar' ? 'رحلة' : 'tours'}
+                  {getCategoryCount(category.id)} {!category.isCustom && (locale === 'ar' ? 'رحلة' : 'tours')}
                 </div>
 
-                {/* Description */}
                 {category.description && (
                   <p className={`text-xs mt-2 ${
                     activeCategory === category.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
@@ -354,18 +461,14 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Filters & Sort Section
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Filters & Sort */}
       <section className="py-8 bg-white dark:bg-gray-900 sticky top-0 z-40 shadow-md">
         <div className="container-custom">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            {/* Results Count */}
             <div className="text-gray-900 dark:text-white font-semibold">
               {filteredTours.length} {locale === 'ar' ? 'رحلة متاحة' : 'tours available'}
             </div>
 
-            {/* Filters Toggle (Mobile) */}
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="md:hidden btn btn-outline"
@@ -376,9 +479,7 @@ export default function ToursPage() {
               {locale === 'ar' ? 'فلاتر' : 'Filters'}
             </button>
 
-            {/* Filters (Desktop) */}
             <div className="hidden md:flex items-center gap-4 flex-1 justify-end">
-              {/* Price Range */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                   {locale === 'ar' ? 'السعر:' : 'Price:'}
@@ -391,14 +492,13 @@ export default function ToursPage() {
                   }}
                   className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-900/50 outline-none"
                 >
-                  <option value="0-2000">{locale === 'ar' ? 'الكل' : 'All'}</option>
+                  <option value="0-5000">{locale === 'ar' ? 'الكل' : 'All'}</option>
                   <option value="0-1000">$0 - $1000</option>
-                  <option value="1000-1500">$1000 - $1500</option>
-                  <option value="1500-2000">$1500+</option>
+                  <option value="1000-2000">$1000 - $2000</option>
+                  <option value="2000-5000">$2000+</option>
                 </select>
               </div>
 
-              {/* Duration */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                   {locale === 'ar' ? 'المدة:' : 'Duration:'}
@@ -415,7 +515,6 @@ export default function ToursPage() {
                 </select>
               </div>
 
-              {/* Difficulty */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                   {locale === 'ar' ? 'الصعوبة:' : 'Difficulty:'}
@@ -432,7 +531,6 @@ export default function ToursPage() {
                 </select>
               </div>
 
-              {/* Sort */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                   {locale === 'ar' ? 'الترتيب:' : 'Sort:'}
@@ -452,10 +550,9 @@ export default function ToursPage() {
             </div>
           </div>
 
-          {/* Mobile Filters Drawer */}
+          {/* Mobile Filters */}
           {showFilters && (
             <div className="md:hidden mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl space-y-4">
-              {/* Same filters as desktop but stacked */}
               <div>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
                   {locale === 'ar' ? 'السعر' : 'Price'}
@@ -468,10 +565,10 @@ export default function ToursPage() {
                   }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
                 >
-                  <option value="0-2000">{locale === 'ar' ? 'الكل' : 'All'}</option>
+                  <option value="0-5000">{locale === 'ar' ? 'الكل' : 'All'}</option>
                   <option value="0-1000">$0 - $1000</option>
-                  <option value="1000-1500">$1000 - $1500</option>
-                  <option value="1500-2000">$1500+</option>
+                  <option value="1000-2000">$1000 - $2000</option>
+                  <option value="2000-5000">$2000+</option>
                 </select>
               </div>
 
@@ -511,9 +608,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Tours Grid
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Tours Grid */}
       <section className="py-20 bg-white dark:bg-gray-900">
         <div className="container-custom">
           {filteredTours.length > 0 ? (
@@ -524,7 +619,6 @@ export default function ToursPage() {
                 ))}
               </div>
 
-              {/* Load More */}
               {filteredTours.length > 6 && (
                 <div className="text-center mt-12">
                   <button className="btn btn-outline">
@@ -534,7 +628,6 @@ export default function ToursPage() {
               )}
             </>
           ) : (
-            /* No Results */
             <div className="text-center py-20">
               <svg className="w-24 h-24 mx-auto text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -550,9 +643,10 @@ export default function ToursPage() {
               <button
                 onClick={() => {
                   setActiveCategory('all')
-                  setPriceRange([0, 2000])
+                  setPriceRange([0, 5000])
                   setSelectedDifficulty('all')
                   setSelectedDuration('all')
+                  setSearchTerm('')
                 }}
                 className="btn btn-primary"
               >
@@ -563,9 +657,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Custom Tours Section (من متطلبات PDF)
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Custom Tours Section */}
       <section className="py-20 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
         <div className="container-custom">
           <div className="max-w-4xl mx-auto text-center">
@@ -589,7 +681,6 @@ export default function ToursPage() {
                 : 'Didn\'t find what you\'re looking for? Let us design the perfect tour just for you!'}
             </p>
 
-            {/* Custom Tour Features */}
             <div className="grid md:grid-cols-3 gap-8 mb-12">
               <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg">
                 <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -635,7 +726,6 @@ export default function ToursPage() {
               </div>
             </div>
 
-            {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 href="/contact?type=custom"
@@ -661,9 +751,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Travel Packages Section (من متطلبات PDF)
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Travel Packages - باقات جاهزة */}
       <section className="py-20 bg-white dark:bg-gray-900">
         <div className="container-custom">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -722,7 +810,6 @@ export default function ToursPage() {
 
             {/* Standard Package */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all border-4 border-green-500 relative">
-              {/* Popular Badge */}
               <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
                 {locale === 'ar' ? 'الأكثر شعبية' : 'Most Popular'}
               </div>
@@ -799,9 +886,7 @@ export default function ToursPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          Booking & Inquiries CTA (من متطلبات PDF)
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* Booking & Inquiries CTA */}
       <section className="py-20 bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 dark:from-green-800 dark:via-blue-800 dark:to-purple-800 text-white">
         <div className="container-custom text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -844,6 +929,7 @@ export default function ToursPage() {
           </div>
         </div>
       </section>
+
     </div>
   )
 }

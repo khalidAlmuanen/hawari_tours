@@ -6,12 +6,60 @@ const nextConfig = {
   // Image Optimization Configuration
   // ═══════════════════════════════════════════════════════════════
   images: {
-    // Allowed domains for external images
-    domains: [
-      'images.unsplash.com',
-      'images.pexels.com',
-      'cdn.pixabay.com',
-      'img.youtube.com', // For YouTube thumbnails
+    // Remote patterns for external images (Next.js 13+)
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.pixabay.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        pathname: '/**',
+      },
+      // ✅ Cloudinary (شائع للصور)
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      // ✅ ImgBB (شائع للصور)
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+        pathname: '/**',
+      },
+      // ✅ Imgur
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        pathname: '/**',
+      },
+      // ✅ Wildcard for all HTTPS domains (للمعرض)
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      // ✅ Support HTTP for local development
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+      },
     ],
 
     // Modern image formats
@@ -25,6 +73,9 @@ const nextConfig = {
 
     // Image quality settings
     minimumCacheTTL: 60,
+    
+    // ✅ Unoptimize external images to avoid timeout
+    unoptimized: false,
     
     // Disable static imports if needed
     // dangerouslyAllowSVG: true,

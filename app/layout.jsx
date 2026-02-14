@@ -6,8 +6,9 @@
 import './globals.css'
 import { Cairo, Inter } from 'next/font/google'
 import { AppProvider } from '@/contexts/AppContext'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { ToastProvider } from '@/components/admin/Toast'
+import LayoutSwitcher from '@/components/LayoutSwitcher'
 
 // ═══════════════════════════════════════════════════════════════════════
 // Fonts Configuration
@@ -250,18 +251,11 @@ export default function RootLayout({ children }) {
       <body className={`${cairo.className} antialiased`}>
         {/* App Provider للغة والوضع الليلي */}
         <AppProvider>
-          <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors">
-            {/* Navigation */}
-            <Navbar />
-
-            {/* Main Content */}
-            <main className="flex-1">
-              {children}
-            </main>
-
-            {/* Footer */}
-            <Footer />
-          </div>
+          <AuthProvider>
+            <ToastProvider>
+              <LayoutSwitcher>{children}</LayoutSwitcher>
+            </ToastProvider>
+          </AuthProvider>
         </AppProvider>
 
         {/* Analytics - Google Analytics (اختياري) */}

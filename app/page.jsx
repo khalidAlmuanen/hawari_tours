@@ -12,14 +12,15 @@ import { useState, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import TourCard from '@/components/TourCard'
-import { getAllTours } from '@/data/tours-complete'
 
 export default function EnhancedHomePage() {
   const { locale, isDark } = useApp()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [weatherData, setWeatherData] = useState(null)
   const [newsArticles, setNewsArticles] = useState([])
-  const tours = getAllTours()
+  const [tours, setTours] = useState([])
+  const [toursLoading, setToursLoading] = useState(true)
+  const [newsLoading, setNewsLoading] = useState(true)
 
   // ═══════════════════════════════════════════════════════════════
   // Hero Slides - Premium Content
@@ -72,62 +73,26 @@ export default function EnhancedHomePage() {
     }
   ]
 
-  // ═══════════════════════════════════════════════════════════════
-  // Latest News - من متطلبات PDF
-  // ═══════════════════════════════════════════════════════════════
-  const latestNews = [
-    {
-      id: 1,
-      title: {
-        ar: 'سقطرى تحتفل بموسم السياحة الجديد',
-        en: 'Socotra Celebrates New Tourism Season'
-      },
-      excerpt: {
-        ar: 'افتتاح رسمي لموسم السياحة 2024-2025 مع توقعات بزيادة عدد الزوار بنسبة 40%',
-        en: 'Official opening of 2024-2025 tourism season with 40% visitor increase expected'
-      },
-      date: '2024-02-01',
-      image: '/img/news/news-1.jpg',
-      category: {
-        ar: 'أخبار سياحية',
-        en: 'Tourism News'
+  // Fetch latest news from database
+  useEffect(() => {
+    fetchLatestNews()
+  }, [])
+
+  const fetchLatestNews = async () => {
+    setNewsLoading(true)
+    try {
+      const response = await fetch('/api/news/all')
+      const result = await response.json()
+
+      if (result.success) {
+        setNewsArticles(result.data.slice(0, 3)) // Get latest 3
       }
-    },
-    {
-      id: 2,
-      title: {
-        ar: 'اليونسكو تشيد بجهود الحفاظ على البيئة',
-        en: 'UNESCO Praises Conservation Efforts'
-      },
-      excerpt: {
-        ar: 'تقرير إيجابي من اليونسكو حول جهود حماية النباتات المستوطنة في سقطرى',
-        en: 'Positive UNESCO report on endemic plant protection efforts in Socotra'
-      },
-      date: '2024-01-28',
-      image: '/img/news/news-2.jpg',
-      category: {
-        ar: 'حماية البيئة',
-        en: 'Conservation'
-      }
-    },
-    {
-      id: 3,
-      title: {
-        ar: 'طقس مثالي خلال شهر فبراير',
-        en: 'Perfect Weather Throughout February'
-      },
-      excerpt: {
-        ar: 'توقعات بطقس مثالي مع درجات حرارة معتدلة ورياح هادئة طوال الشهر',
-        en: 'Forecast shows ideal weather with moderate temperatures and calm winds all month'
-      },
-      date: '2024-02-05',
-      image: '/img/news/news-3.jpg',
-      category: {
-        ar: 'الطقس',
-        en: 'Weather'
-      }
+    } catch (error) {
+      console.error('Failed to fetch news:', error)
+    } finally {
+      setNewsLoading(false)
     }
-  ]
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // Why Choose Us - Premium Features
@@ -244,6 +209,27 @@ export default function EnhancedHomePage() {
     }, 5000)
     return () => clearInterval(timer)
   }, [heroSlides.length])
+
+  // Fetch Tours from Database
+  useEffect(() => {
+    async function fetchTours() {
+      try {
+        setToursLoading(true)
+        const response = await fetch('/api/tours?featured=true')
+        const result = await response.json()
+        
+        if (result.success) {
+          setTours(result.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch tours:', error)
+      } finally {
+        setToursLoading(false)
+      }
+    }
+    
+    fetchTours()
+  }, [])
 
   // Simulate weather data
   useEffect(() => {
@@ -474,11 +460,50 @@ export default function EnhancedHomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tours.slice(0, 6).map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
-          </div>
+          {/* Loading State */}
+          {toursLoading && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white dark:bg-gray-700 rounded-2xl overflow-hidden shadow-lg animate-pulse">
+                  <div className="h-64 bg-gray-300 dark:bg-gray-600" />
+                  <div className="p-6 space-y-4">
+                    <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-3/4" />
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full" />
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6" />
+                    <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded mt-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tours Grid */}
+          {!toursLoading && tours.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {tours.slice(0, 6).map((tour) => (
+                <TourCard key={tour.id} tour={tour} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!toursLoading && tours.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎯</div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {locale === 'ar' ? 'لا توجد جولات متاحة حالياً' : 'No Tours Available'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {locale === 'ar' ? 'تحقق مرة أخرى قريباً!' : 'Check back soon!'}
+              </p>
+              <Link
+                href="/admin/tours"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:shadow-xl transition-all"
+              >
+                {locale === 'ar' ? 'إضافة جولة من لوحة التحكم' : 'Add Tour from Admin Panel'}
+              </Link>
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link
@@ -511,55 +536,80 @@ export default function EnhancedHomePage() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {latestNews.map((article) => (
-              <article
-                key={article.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
-              >
-                <div className="relative h-48 bg-gradient-to-br from-blue-400 to-indigo-500">
-                  {/* Placeholder for news image */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-16 h-16 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
-                  </div>
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-semibold rounded-full">
-                      {article.category[locale]}
-                    </span>
-                  </div>
-                </div>
+          {newsLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                {locale === 'ar' ? 'جارِ التحميل...' : 'Loading...'}
+              </p>
+            </div>
+          ) : newsArticles.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4">📰</div>
+              <p className="text-gray-600 dark:text-gray-400">
+                {locale === 'ar' ? 'لا توجد أخبار حالياً' : 'No news available'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8">
+              {newsArticles.map((article) => {
+                const title = locale === 'ar' ? article.titleAr : article.title
+                const excerpt = locale === 'ar' ? article.excerptAr : article.excerpt
 
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {new Date(article.date).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US')}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
-                    {article.title[locale]}
-                  </h3>
-
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                    {article.excerpt[locale]}
-                  </p>
-
-                  <Link
-                    href={`/news/${article.id}`}
-                    className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold hover:gap-3 transition-all"
+                return (
+                  <article
+                    key={article.id}
+                    className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
                   >
-                    {locale === 'ar' ? 'اقرأ المزيد' : 'Read More'}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locale === 'ar' ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-                    </svg>
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+                    {article.coverImage && (
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={article.coverImage}
+                          alt={title}
+                          fill
+                          className="object-cover"
+                        />
+                        {article.breaking && (
+                          <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
+                              🔥 {locale === 'ar' ? 'عاجل' : 'Breaking'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="p-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{new Date(article.publishedAt || article.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                        {title}
+                      </h3>
+
+                      <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                        {excerpt}
+                      </p>
+
+                      <Link
+                        href={`/news/${article.slug}`}
+                        className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold hover:gap-3 transition-all"
+                      >
+                        {locale === 'ar' ? 'اقرأ المزيد' : 'Read More'}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locale === 'ar' ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+                        </svg>
+                      </Link>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link

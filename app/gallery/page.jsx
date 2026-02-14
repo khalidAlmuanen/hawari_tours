@@ -1,11 +1,11 @@
 'use client'
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📸 Gallery Page - PART 1 (Hero + Photo Grid + Data)
-// المرحلة 9: معرض الصور - احترافي جداً وعصري ومبهر
+// 📸 Gallery Page - Ultra Professional & Dynamic
+// المرحلة 9: معرض الصور - احترافي جداً وعصري ومبهر (يتحكم من Admin!)
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useApp } from '@/contexts/AppContext'
 import WhatsAppButton from '@/components/WhatsAppButton'
@@ -18,21 +18,98 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [photos, setPhotos] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // ═══════════════════════════════════════════════════════════════
-  // Gallery Stats - إحصائيات المعرض
+  // Fetch Gallery Images from Database
+  // ═══════════════════════════════════════════════════════════════
+  useEffect(() => {
+    fetchGalleryImages()
+  }, [])
+
+  const fetchGalleryImages = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/gallery')
+      const result = await response.json()
+      
+      if (result.success) {
+        // Transform database images to match the format used in the UI
+        const transformedImages = result.data.images.map(img => ({
+          id: img.id,
+          category: mapCategoryToOldFormat(img.category),
+          title: { ar: img.titleAr || img.title || 'بدون عنوان', en: img.title || img.titleAr || 'Untitled' },
+          location: { ar: '', en: '' }, // Can be added to schema if needed
+          src: img.url,
+          thumbnail: img.thumbnail || img.url,
+          photographer: 'Hawari Tours',
+          date: new Date(img.createdAt).getFullYear().toString(),
+          description: { ar: img.descriptionAr || img.description || '', en: img.description || img.descriptionAr || '' },
+          tags: img.tags || [],
+          aspectRatio: calculateAspectRatio(img.width, img.height),
+          featured: img.featured,
+          color: getCategoryColor(img.category)
+        }))
+        
+        setPhotos(transformedImages)
+      }
+    } catch (error) {
+      console.error('Failed to fetch gallery:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Map database categories to old format
+  const mapCategoryToOldFormat = (category) => {
+    const mapping = {
+      'DESTINATIONS': 'landscapes',
+      'TOURS': 'landscapes',
+      'NATURE': 'landscapes',
+      'CULTURE': 'culture',
+      'WILDLIFE': 'wildlife',
+      'PEOPLE': 'culture'
+    }
+    return mapping[category] || 'landscapes'
+  }
+
+  // Calculate aspect ratio
+  const calculateAspectRatio = (width, height) => {
+    if (!width || !height) return 'landscape'
+    const ratio = width / height
+    if (ratio > 1.3) return 'landscape'
+    if (ratio < 0.8) return 'portrait'
+    return 'square'
+  }
+
+  // Get category color
+  const getCategoryColor = (category) => {
+    const colors = {
+      'DESTINATIONS': '#00BCD4',
+      'TOURS': '#9C27B0',
+      'NATURE': '#4CAF50',
+      'CULTURE': '#FF9800',
+      'WILDLIFE': '#8BC34A',
+      'PEOPLE': '#E91E63'
+    }
+    return colors[category] || '#00BCD4'
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // Gallery Stats - إحصائيات المعرض (Dynamic)
   // ═══════════════════════════════════════════════════════════════
   const stats = [
     {
-      number: '500+',
+      number: `${photos.length}+`,
       label: { ar: 'صورة', en: 'Photos' },
       icon: '📸',
       gradient: 'from-blue-500 to-cyan-600'
     },
     {
-      number: '50+',
-      label: { ar: 'فيديو', en: 'Videos' },
-      icon: '🎥',
+      number: `${photos.filter(p => p.featured).length}+`,
+      label: { ar: 'مميزة', en: 'Featured' },
+      icon: '⭐',
       gradient: 'from-purple-500 to-pink-600'
     },
     {
@@ -49,319 +126,9 @@ export default function GalleryPage() {
     }
   ]
 
-  // ═══════════════════════════════════════════════════════════════
-  // Photo Gallery Data - بيانات المعرض
-  // ✅ تم إضافة (src + thumbnail) لكل صورة
-  // غيّر الروابط فقط وسيعمل العرض مباشرة
-  // ═══════════════════════════════════════════════════════════════
-  const photos = [
-    // LANDSCAPES - مناظر طبيعية
-    {
-      id: 1,
-      category: 'landscapes',
-      title: { ar: 'أشجار دم الأخوين عند الغروب', en: 'Dragon Blood Trees at Sunset' },
-      location: { ar: 'جبال حجر', en: 'Haggier Mountains' },
-
-      // ✅ ضع رابط الصورة هنا
-      src: '/img/gallery/landscapes/socotra-14.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-14.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'منظر خلاب لأشجار دم الأخوين الأسطورية على قمم جبال حجر عند الغروب',
-        en: 'Stunning view of legendary Dragon Blood Trees on Haggier Mountains peaks at sunset'
-      },
-      tags: ['nature', 'sunset', 'mountains', 'trees'],
-      aspectRatio: 'landscape',
-      featured: true,
-      color: '#E65100'
-    },
-    {
-      id: 2,
-      category: 'landscapes',
-      title: { ar: 'شاطئ ديتوا اللاجون', en: 'Detwah Lagoon Beach' },
-      location: { ar: 'قلنسية', en: 'Qalansiyah' },
-
-      src: '/img/gallery/landscapes/socotra-15.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-15.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'مياه فيروزية صافية وكثبان رملية بيضاء في أجمل شواطئ سقطرى',
-        en: "Crystal turquoise waters and white sand dunes at Socotra's most beautiful beach"
-      },
-      tags: ['beach', 'lagoon', 'sand', 'water'],
-      aspectRatio: 'landscape',
-      featured: true,
-      color: '#00BCD4'
-    },
-    {
-      id: 3,
-      category: 'landscapes',
-      title: { ar: 'كهف هوق الضخم', en: 'Massive Hoq Cave' },
-      location: { ar: 'شرق سقطرى', en: 'East Socotra' },
-
-      src: '/img/gallery/landscapes/socotra-01.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-01.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'تشكيلات صخرية مذهلة داخل أكبر كهوف سقطرى',
-        en: "Amazing rock formations inside Socotra's largest cave"
-      },
-      tags: ['cave', 'rocks', 'underground'],
-      aspectRatio: 'portrait',
-      featured: false,
-      color: '#5D4037'
-    },
-    {
-      id: 4,
-      category: 'landscapes',
-      title: { ar: 'كثبان عرعر الرملية', en: 'Arher Sand Dunes' },
-      location: { ar: 'عرعر', en: 'Arher' },
-
-      src: '/img/gallery/landscapes/socotra-02.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-02.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'كثبان رملية ضخمة تلتقي بالبحر في منظر خيالي',
-        en: 'Massive sand dunes meeting the sea in surreal scenery'
-      },
-      tags: ['dunes', 'desert', 'beach'],
-      aspectRatio: 'landscape',
-      featured: true,
-      color: '#F4A460'
-    },
-    {
-      id: 5,
-      category: 'landscapes',
-      title: { ar: 'وادي دي عجهر الأخضر', en: 'Green Di Ajher Valley' },
-      location: { ar: 'وسط سقطرى', en: 'Central Socotra' },
-
-      src: '/img/gallery/landscapes/socotra-03.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-03.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'وادٍ أخضر خصب وسط جبال سقطرى',
-        en: 'Lush green valley amid Socotra mountains'
-      },
-      tags: ['valley', 'green', 'nature'],
-      aspectRatio: 'landscape',
-      featured: false,
-      color: '#4CAF50'
-    },
-    {
-      id: 6,
-      category: 'landscapes',
-      title: { ar: 'شروق الشمس على المحيط', en: 'Ocean Sunrise' },
-      location: { ar: 'الساحل الشرقي', en: 'East Coast' },
-
-      src: '/img/gallery/landscapes/socotra-04.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-04.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'شروق ساحر على المحيط الهندي',
-        en: 'Magical sunrise over Indian Ocean'
-      },
-      tags: ['sunrise', 'ocean', 'sky'],
-      aspectRatio: 'landscape',
-      featured: false,
-      color: '#FF6F00'
-    },
-
-    // CULTURE - ثقافة
-    {
-      id: 7,
-      category: 'culture',
-      title: { ar: 'بيوت سقطرية تقليدية', en: 'Traditional Socotri Houses' },
-      location: { ar: 'قرية حديبو', en: 'Hadiboh Village' },
-
-      src: '/img/gallery/landscapes/socotra-05.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-05.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'عمارة تقليدية فريدة من الحجر والطين',
-        en: 'Unique traditional architecture of stone and mud'
-      },
-      tags: ['architecture', 'village', 'traditional'],
-      aspectRatio: 'portrait',
-      featured: true,
-      color: '#795548'
-    },
-    {
-      id: 8,
-      category: 'culture',
-      title: { ar: 'صياد سقطري تقليدي', en: 'Traditional Socotri Fisherman' },
-      location: { ar: 'ديحمري', en: 'Dihamri' },
-
-      src: '/img/gallery/landscapes/socotra-06.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-06.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'صياد محلي بقاربه التقليدي',
-        en: 'Local fisherman with traditional boat'
-      },
-      tags: ['people', 'fishing', 'boat', 'traditional'],
-      aspectRatio: 'portrait',
-      featured: true,
-      color: '#2196F3'
-    },
-    {
-      id: 9,
-      category: 'culture',
-      title: { ar: 'سوق حديبو الشعبي', en: 'Hadiboh Traditional Market' },
-      location: { ar: 'حديبو', en: 'Hadiboh' },
-
-      src: '/img/gallery/landscapes/socotra-07.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-07.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'سوق تقليدي نابض بالحياة',
-        en: 'Vibrant traditional marketplace'
-      },
-      tags: ['market', 'people', 'culture'],
-      aspectRatio: 'landscape',
-      featured: false,
-      color: '#FF9800'
-    },
-    {
-      id: 10,
-      category: 'culture',
-      title: { ar: 'رقصة سقطرية تقليدية', en: 'Traditional Socotri Dance' },
-      location: { ar: 'مهرجان محلي', en: 'Local Festival' },
-
-      src: '/img/gallery/landscapes/socotra-08.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-08.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'رقصة تقليدية في احتفال محلي',
-        en: 'Traditional dance at local celebration'
-      },
-      tags: ['dance', 'festival', 'culture'],
-      aspectRatio: 'landscape',
-      featured: false,
-      color: '#E91E63'
-    },
-
-    // WILDLIFE - حياة برية
-    {
-      id: 11,
-      category: 'wildlife',
-      title: { ar: 'حرباء سقطرى', en: 'Socotra Chameleon' },
-      location: { ar: 'غابة دم الأخوين', en: 'Dragon Blood Forest' },
-
-      src: '/img/gallery/landscapes/socotra-09.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-09.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'حرباء متوطنة نادرة بألوان زاهية',
-        en: 'Rare endemic chameleon with vibrant colors'
-      },
-      tags: ['reptile', 'chameleon', 'endemic'],
-      aspectRatio: 'portrait',
-      featured: true,
-      color: '#8BC34A'
-    },
-    {
-      id: 12,
-      category: 'wildlife',
-      title: { ar: 'عصفور سقطرى', en: 'Socotra Starling' },
-      location: { ar: 'جبال حجر', en: 'Haggier Mountains' },
-
-      src: '/img/gallery/landscapes/socotra-10.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-10.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'طائر متوطن فريد يعيش في المرتفعات',
-        en: 'Unique endemic bird living in highlands'
-      },
-      tags: ['bird', 'endemic', 'wildlife'],
-      aspectRatio: 'portrait',
-      featured: false,
-      color: '#424242'
-    },
-    {
-      id: 13,
-      category: 'wildlife',
-      title: { ar: 'سلحفاة بحرية', en: 'Sea Turtle' },
-      location: { ar: 'شاطئ ديحمري', en: 'Dihamri Beach' },
-
-      src: '/img/gallery/landscapes/socotra-11.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-11.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'سلحفاة بحرية خضراء على شاطئ التعشيش',
-        en: 'Green sea turtle on nesting beach'
-      },
-      tags: ['turtle', 'marine', 'beach'],
-      aspectRatio: 'landscape',
-      featured: true,
-      color: '#009688'
-    },
-    {
-      id: 14,
-      category: 'wildlife',
-      title: { ar: 'أسماك المرجان الملونة', en: 'Colorful Coral Fish' },
-      location: { ar: 'المحمية البحرية', en: 'Marine Reserve' },
-
-      src: '/img/gallery/landscapes/socotra-12.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-12.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'أسماك ملونة تسبح بين الشعاب المرجانية',
-        en: 'Colorful fish swimming among coral reefs'
-      },
-      tags: ['fish', 'coral', 'underwater'],
-      aspectRatio: 'landscape',
-      featured: false,
-      color: '#00BCD4'
-    },
-    {
-      id: 15,
-      category: 'wildlife',
-      title: { ar: 'دلافين في البحر', en: 'Dolphins at Sea' },
-      location: { ar: 'قبالة الساحل', en: 'Offshore' },
-
-      src: '/img/gallery/landscapes/socotra-13.jpg',
-      thumbnail: '/img/gallery/landscapes/socotra-13.jpg',
-
-      photographer: 'Hawari Tours',
-      date: '2024',
-      description: {
-        ar: 'مجموعة دلافين تقفز في المياه الزرقاء',
-        en: 'Pod of dolphins jumping in blue waters'
-      },
-      tags: ['dolphin', 'marine', 'ocean'],
-      aspectRatio: 'landscape',
-      featured: true,
-      color: '#2196F3'
-    }
-  ]
+  // OLD STATIC DATA (Removed - Now from Database!)
+  // const photos = [
+  // OLD STATIC DATA REMOVED - NOW FETCHED FROM DATABASE!
 
   // ═══════════════════════════════════════════════════════════════
   // Video Gallery Data
@@ -601,8 +368,8 @@ export default function GalleryPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          Photo Gallery - Masonry Grid
-          ✅ تم استبدال Placeholder بصورة حقيقية من photo.thumbnail/src
+          Photo Gallery - Masonry Grid (DYNAMIC FROM DATABASE!)
+          ✅ كل الصور يتم التحكم فيها من لوحة التحكم!
           ═══════════════════════════════════════════════════════════════ */}
       <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4 max-w-7xl">
@@ -612,100 +379,133 @@ export default function GalleryPage() {
               {isAr ? 'معرض الصور' : 'Photo Gallery'}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              {isAr
-                ? `${filteredPhotos.length} صورة احترافية`
-                : `${filteredPhotos.length} Professional Photos`}
+              {loading 
+                ? (isAr ? 'جاري التحميل...' : 'Loading...')
+                : (isAr
+                  ? `${filteredPhotos.length} صورة احترافية`
+                  : `${filteredPhotos.length} Professional Photos`)
+              }
             </p>
           </div>
 
-          {/* Masonry Grid */}
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredPhotos.map((photo, index) => (
-              <div
-                key={photo.id}
-                className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-2 animate-fade-in ${
-                  photo.aspectRatio === 'landscape'
-                    ? 'md:col-span-2'
-                    : photo.aspectRatio === 'portrait'
-                    ? 'md:row-span-2'
-                    : ''
-                } ${photo.featured ? 'lg:col-span-2 lg:row-span-2' : ''}`}
-                style={{
-                  animationDelay: `${index * 0.05}s`,
-                  backgroundColor: photo.color
-                }}
-                onClick={() => openLightbox(index)}
-              >
-                {/* Image Container */}
-                <div className={`relative ${
-                  photo.aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-[4/3]'
-                } ${photo.featured ? 'aspect-square' : ''}`}>
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
-
-                  {/* ✅ Actual Image */}
-                  {photo.thumbnail || photo.src ? (
-                    <Image
-                      src={photo.thumbnail || photo.src}
-                      alt={photo.title[locale]}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      priority={photo.featured}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
-                      📸
-                    </div>
-                  )}
-
-                  {/* Overlay on Hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity transform scale-0 group-hover:scale-100 transition-transform">
-                      <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Info Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                    <h3 className="text-white font-bold text-lg mb-1">
-                      {photo.title[locale]}
-                    </h3>
-                    <div className="flex items-center gap-2 text-white/80 text-sm">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                      </svg>
-                      <span>{photo.location[locale]}</span>
-                    </div>
-                  </div>
-
-                  {/* Featured Badge */}
-                  {photo.featured && (
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      {isAr ? 'مميزة' : 'Featured'}
-                    </div>
-                  )}
-
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold">
-                    {categories.find(c => c.id === photo.category)?.icon} {categories.find(c => c.id === photo.category)?.label[locale]}
-                  </div>
-                </div>
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="inline-block w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">
+                  {isAr ? 'جاري تحميل الصور...' : 'Loading images...'}
+                </p>
               </div>
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          {filteredPhotos.length > 12 && (
-            <div className="text-center mt-12">
-              <button className="btn btn-outline px-8 py-4 text-lg">
-                {isAr ? 'تحميل المزيد' : 'Load More'}
-              </button>
             </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && filteredPhotos.length === 0 && (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">📸</div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {isAr ? 'لا توجد صور' : 'No Images'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {isAr ? 'لم يتم إضافة صور بعد' : 'No images have been added yet'}
+              </p>
+            </div>
+          )}
+
+          {/* Masonry Grid */}
+          {!loading && filteredPhotos.length > 0 && (
+            <>
+              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredPhotos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-2 animate-fade-in ${
+                      photo.aspectRatio === 'landscape'
+                        ? 'md:col-span-2'
+                        : photo.aspectRatio === 'portrait'
+                        ? 'md:row-span-2'
+                        : ''
+                    } ${photo.featured ? 'lg:col-span-2 lg:row-span-2' : ''}`}
+                    style={{
+                      animationDelay: `${index * 0.05}s`,
+                      backgroundColor: photo.color
+                    }}
+                    onClick={() => openLightbox(index)}
+                  >
+                    {/* Image Container */}
+                    <div className={`relative ${
+                      photo.aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-[4/3]'
+                    } ${photo.featured ? 'aspect-square' : ''}`}>
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
+
+                      {/* ✅ Actual Image */}
+                      {photo.thumbnail || photo.src ? (
+                        <Image
+                          src={photo.thumbnail || photo.src}
+                          alt={photo.title[locale]}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          priority={photo.featured}
+                          unoptimized={true}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/20 text-6xl">
+                          📸
+                        </div>
+                      )}
+
+                      {/* Overlay on Hover */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity transform scale-0 group-hover:scale-100 transition-transform">
+                          <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Info Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform">
+                        <h3 className="text-white font-bold text-lg mb-1">
+                          {photo.title[locale]}
+                        </h3>
+                        <div className="flex items-center gap-2 text-white/80 text-sm">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                          </svg>
+                          <span>{photo.location[locale]}</span>
+                        </div>
+                      </div>
+
+                      {/* Featured Badge */}
+                      {photo.featured && (
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          {isAr ? 'مميزة' : 'Featured'}
+                        </div>
+                      )}
+
+                      {/* Category Badge */}
+                      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        {categories.find(c => c.id === photo.category)?.icon} {categories.find(c => c.id === photo.category)?.label[locale]}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Load More Button */}
+              {filteredPhotos.length > 12 && (
+                <div className="text-center mt-12">
+                  <button className="btn btn-outline px-8 py-4 text-lg">
+                    {isAr ? 'تحميل المزيد' : 'Load More'}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -762,6 +562,7 @@ export default function GalleryPage() {
                     className="object-contain"
                     sizes="92vw"
                     priority
+                    unoptimized={true}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white/30 text-9xl min-h-[400px]">
@@ -1016,7 +817,20 @@ export default function GalleryPage() {
 
           {/* Instagram Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-            {[...Array(12)].map((_, i) => (
+            {[
+              { likes: 342, comments: 28 },
+              { likes: 521, comments: 45 },
+              { likes: 198, comments: 15 },
+              { likes: 673, comments: 52 },
+              { likes: 289, comments: 31 },
+              { likes: 445, comments: 38 },
+              { likes: 567, comments: 42 },
+              { likes: 312, comments: 24 },
+              { likes: 489, comments: 36 },
+              { likes: 234, comments: 19 },
+              { likes: 598, comments: 48 },
+              { likes: 367, comments: 29 }
+            ].map((post, i) => (
               <div
                 key={i}
                 className="aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group relative bg-gradient-to-br from-pink-400 to-purple-600 animate-fade-in"
@@ -1035,13 +849,13 @@ export default function GalleryPage() {
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                         </svg>
-                        {Math.floor(Math.random() * 500) + 100}
+                        {post.likes}
                       </span>
                       <span className="flex items-center gap-1">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                         </svg>
-                        {Math.floor(Math.random() * 50) + 10}
+                        {post.comments}
                       </span>
                     </div>
                   </div>

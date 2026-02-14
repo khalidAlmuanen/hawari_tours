@@ -1,0 +1,872 @@
+// ═══════════════════════════════════════════════════════════════
+// 🗄️ DATABASE SCHEMA - Prisma
+// قاعدة بيانات كاملة لمشروع Hawarl Tours
+// ═══════════════════════════════════════════════════════════════
+
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // يمكن تغييره إلى mysql أو sqlite
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 👤 User Management
+// ═══════════════════════════════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          UserRole  @default(USER)
+  phone         String?
+  avatar        String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  bookings      Booking[]
+  reviews       Review[]
+  messages      Message[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✈️ Tours Management
+// ═══════════════════════════════════════════════════════════════
+
+model Tour {
+  id              String        @id @default(cuid())
+  title           String
+  titleAr         String
+  slug            String        @unique
+  description     String        @db.Text
+  descriptionAr   String        @db.Text
+  price           Float
+  discount        Float?        @default(0)
+  duration        Int           // في الأيام
+  maxPeople       Int
+  difficulty      Difficulty    @default(MODERATE)
+  category        TourCategory
+  featured        Boolean       @default(false)
+  isActive        Boolean       @default(true)
+  
+  // Media
+  coverImage      String
+  images          String[]
+  videoUrl        String?
+  
+  // Location
+  location        String
+  locationAr      String
+  latitude        Float?
+  longitude       Float?
+  
+  // Itinerary
+  itinerary       Json?         // تفاصيل البرنامج اليومي
+  
+  // Includes/Excludes
+  includes        String[]
+  excludes        String[]
+  
+  // Stats
+  rating          Float         @default(0)
+  reviewsCount    Int           @default(0)
+  bookingsCount   Int           @default(0)
+  viewsCount      Int           @default(0)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  bookings        Booking[]
+  reviews         Review[]
+  tourDates       TourDate[]
+  
+  @@map("tours")
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+}
+
+enum Difficulty {
+  EASY
+  MODERATE
+  CHALLENGING
+  DIFFICULT
+}
+
+enum TourCategory {
+  ADVENTURE
+  CULTURAL
+  NATURE
+  BEACH
+  WILDLIFE
+  HERITAGE
+}
+
+model TourDate {
+  id              String    @id @default(cuid())
+  tourId          String
+  startDate       DateTime
+  endDate         DateTime
+  availableSpots  Int
+  price           Float
+  isActive        Boolean   @default(true)
+  
+  tour            Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  
+  @@map("tour_dates")
+  @@index([tourId])
+  @@index([startDate])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📅 Bookings Management
+// ═══════════════════════════════════════════════════════════════
+
+model Booking {
+  id              String          @id @default(cuid())
+  bookingNumber   String          @unique
+  
+  // User & Tour
+  userId          String
+  tourId          String
+  
+  // Details
+  startDate       DateTime
+  endDate         DateTime
+  numberOfPeople  Int
+  totalPrice      Float
+  paidAmount      Float           @default(0)
+  
+  // Status
+  status          BookingStatus   @default(PENDING)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  paymentMethod   PaymentMethod?
+  
+  // Contact Info
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  
+  // Special Requests
+  specialRequests String?         @db.Text
+  notes           String?         @db.Text
+  
+  // Timestamps
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  user            User            @relation(fields: [userId], references: [id])
+  tour            Tour            @relation(fields: [tourId], references: [id])
+  payments        Payment[]
+  
+  @@map("bookings")
+  @@index([userId])
+  @@index([tourId])
+  @@index([status])
+  @@index([bookingNumber])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  CASH
+  PAYPAL
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String
+  amount          Float
+  method          PaymentMethod
+  status          String
+  transactionId   String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+  
+  @@map("payments")
+  @@index([bookingId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🏛️ Destinations Management
+// ═══════════════════════════════════════════════════════════════
+
+model Destination {
+  id              String              @id @default(cuid())
+  name            String
+  nameAr          String
+  slug            String              @unique
+  description     String              @db.Text
+  descriptionAr   String              @db.Text
+  
+  // Media (keep old fields for compatibility)
+  image           String?             // Legacy field
+  coverImage      String?
+  gallery         String[]            // Legacy field
+  images          String[]
+  
+  // Location
+  latitude        Float?
+  longitude       Float?
+  region          String?             // Legacy field
+  
+  // Details
+  category        DestinationCategory @default(NATURE)
+  highlights      String[]            @default([])
+  activities      String[]            @default([])
+  bestTimeToVisit String?
+  
+  // Special Designations
+  unesco          Boolean             @default(false)
+  
+  // Stats
+  viewsCount      Int                 @default(0)
+  toursCount      Int                 @default(0)
+  
+  // Status
+  featured        Boolean             @default(false)
+  isActive        Boolean             @default(true)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@map("destinations")
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+}
+
+enum DestinationCategory {
+  NATURE
+  HERITAGE
+  BEACH
+  MOUNTAIN
+  ARCHAEOLOGICAL
+  WILDLIFE
+  CULTURAL
+  URBAN
+  ADVENTURE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📰 News Management
+// ═══════════════════════════════════════════════════════════════
+
+model News {
+  id              String        @id @default(cuid())
+  title           String
+  titleAr         String
+  slug            String        @unique
+  excerpt         String
+  excerptAr       String
+  content         String        @db.Text
+  contentAr       String        @db.Text
+  
+  // Media
+  coverImage      String
+  images          String[]
+  
+  // Categorization
+  category        NewsCategory
+  tags            String[]
+  
+  // Publishing
+  featured        Boolean       @default(false)
+  breaking        Boolean       @default(false)
+  trending        Boolean       @default(false)
+  published       Boolean       @default(false)
+  publishedAt     DateTime?
+  
+  // Stats
+  viewsCount      Int           @default(0)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  // Author
+  authorId        String?
+  authorName      String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("news")
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+}
+
+enum NewsCategory {
+  TOURISM
+  ENVIRONMENT
+  WEATHER
+  UNESCO
+  CULTURE
+  EVENTS
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🖼️ Gallery Management
+// ═══════════════════════════════════════════════════════════════
+
+model GalleryImage {
+  id              String          @id @default(cuid())
+  title           String?
+  titleAr         String?
+  description     String?
+  descriptionAr   String?
+  
+  // Media
+  url             String
+  thumbnail       String?
+  
+  // Categorization
+  category        GalleryCategory
+  tags            String[]
+  
+  // Metadata
+  width           Int?
+  height          Int?
+  size            Int?
+  format          String?
+  
+  featured        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("gallery_images")
+  @@index([category])
+}
+
+enum GalleryCategory {
+  DESTINATIONS
+  TOURS
+  NATURE
+  CULTURE
+  WILDLIFE
+  PEOPLE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 💬 Testimonials/Reviews Management
+// ═══════════════════════════════════════════════════════════════
+
+model Testimonial {
+  id              String    @id @default(cuid())
+  customerName    String
+  customerNameAr  String?
+  customerEmail   String?
+  customerImage   String?
+  
+  content         String    @db.Text
+  contentAr       String?   @db.Text
+  
+  rating          Int       // 1-5
+  tourName        String?
+  tourNameAr      String?
+  
+  featured        Boolean   @default(false)
+  verified        Boolean   @default(false)
+  published       Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("testimonials")
+  @@index([published])
+  @@index([featured])
+}
+
+model Review {
+  id              String    @id @default(cuid())
+  userId          String
+  tourId          String
+  
+  rating          Int       // 1-5
+  title           String?
+  comment         String    @db.Text
+  
+  // Helpful count
+  helpfulCount    Int       @default(0)
+  
+  // Moderation
+  approved        Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  user            User      @relation(fields: [userId], references: [id])
+  tour            Tour      @relation(fields: [tourId], references: [id])
+  
+  @@map("reviews")
+  @@index([userId])
+  @@index([tourId])
+  @@index([approved])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✉️ Messages/Contact Management
+// ═══════════════════════════════════════════════════════════════
+
+model Message {
+  id              String        @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  subject         String
+  message         String        @db.Text
+  
+  // Optional user link
+  userId          String?
+  
+  // Status
+  status          MessageStatus @default(UNREAD)
+  repliedAt       DateTime?
+  reply           String?       @db.Text
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  user            User?         @relation(fields: [userId], references: [id])
+  
+  @@map("messages")
+  @@index([status])
+  @@index([email])
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📊 Analytics & Stats
+// ═══════════════════════════════════════════════════════════════
+
+model Analytics {
+  id              String    @id @default(cuid())
+  date            DateTime  @db.Date
+  
+  // Traffic
+  pageViews       Int       @default(0)
+  uniqueVisitors  Int       @default(0)
+  bounceRate      Float?
+  avgSessionTime  Int?      // in seconds
+  
+  // Conversions
+  bookings        Int       @default(0)
+  revenue         Float     @default(0)
+  
+  // Sources
+  directTraffic   Int       @default(0)
+  organicSearch   Int       @default(0)
+  socialMedia     Int       @default(0)
+  referral        Int       @default(0)
+  
+  // Devices
+  desktop         Int       @default(0)
+  mobile          Int       @default(0)
+  tablet          Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@map("analytics")
+  @@unique([date])
+  @@index([date])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🎬 Gallery Video Management (معرض الفيديوهات)
+// ═══════════════════════════════════════════════════════════════
+
+model GalleryVideo {
+  id              String          @id @default(cuid())
+  title           String
+  titleAr         String
+  description     String?         @db.Text
+  descriptionAr   String?         @db.Text
+  videoUrl        String          // YouTube/Vimeo URL
+  thumbnail       String?         // Custom thumbnail URL
+  duration        String?         // Format: "5:30"
+  category        GalleryCategory
+  featured        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  viewCount       Int             @default(0)
+  order           Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("gallery_videos")
+  @@index([category])
+  @@index([featured])
+  @@index([order])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🌐 Virtual Tours 360° Management (جولات افتراضية)
+// ═══════════════════════════════════════════════════════════════
+
+model VirtualTour {
+  id              String    @id @default(cuid())
+  title           String
+  titleAr         String
+  description     String?   @db.Text
+  descriptionAr   String?   @db.Text
+  location        String
+  locationAr      String
+  tourUrl         String    // URL للجولة الافتراضية
+  icon            String    @default("🌐") // Emoji icon
+  gradient        String    @default("from-blue-500 to-cyan-600")
+  featured        Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  viewCount       Int       @default(0)
+  order           Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("virtual_tours")
+  @@index([featured])
+  @@index([order])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📱 Instagram Posts (منشورات إنستغرام)
+// ═══════════════════════════════════════════════════════════════
+
+model InstagramPost {
+  id              String    @id @default(cuid())
+  imageUrl        String
+  postUrl         String?   // رابط المنشور على Instagram
+  likes           Int       @default(0)
+  comments        Int       @default(0)
+  isActive        Boolean   @default(true)
+  order           Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("instagram_posts")
+  @@index([order])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📸 Gallery Page Settings (إعدادات صفحة المعرض)
+// ═══════════════════════════════════════════════════════════════
+
+model GallerySetting {
+  id                    String    @id @default(cuid())
+  
+  // Hero Section
+  heroTitle             String    @default("Explore Socotra")
+  heroTitleAr           String    @default("استكشف سقطرى")
+  heroSubtitle          String?   @db.Text
+  heroSubtitleAr        String?   @db.Text
+  heroDescription       String?   @db.Text
+  heroDescriptionAr     String?   @db.Text
+  
+  // Instagram Settings
+  instagramUsername     String    @default("@HawariTours")
+  instagramUrl          String    @default("https://instagram.com/hawaritours")
+  instagramTitle        String    @default("Follow us on Instagram")
+  instagramTitleAr      String    @default("تابعنا على إنستغرام")
+  instagramDescription  String?
+  instagramDescriptionAr String?
+  
+  // Download Section
+  downloadTitle         String    @default("Want High-Resolution Copy?")
+  downloadTitleAr       String    @default("هل تريد نسخة عالية الجودة؟")
+  downloadDescription   String?   @db.Text
+  downloadDescriptionAr String?   @db.Text
+  downloadEnabled       Boolean   @default(true)
+  
+  // CTA Section
+  ctaTitle              String    @default("Liked the Photos? Visit Socotra Yourself!")
+  ctaTitleAr            String    @default("هل أعجبتك الصور؟ زر سقطرى بنفسك!")
+  ctaDescription        String?   @db.Text
+  ctaDescriptionAr      String?   @db.Text
+  ctaButtonText         String    @default("Browse Tours")
+  ctaButtonTextAr       String    @default("تصفح الرحلات")
+  
+  // Stats (can be auto-calculated or manual)
+  statsEnabled          Boolean   @default(true)
+  virtualToursCount     String    @default("10+")
+  highQualityLabel      String    @default("4K")
+  
+  updatedAt             DateTime  @updatedAt
+
+  @@map("gallery_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🧳 Travel Guide - Complete Management System
+// نظام إدارة دليل السفر الشامل
+// ═══════════════════════════════════════════════════════════════
+
+// 1. Quick Tips (النصائح السريعة)
+model QuickTip {
+  id              String    @id @default(cuid())
+  icon            String    // Emoji
+  title           String
+  titleAr         String
+  description     String
+  descriptionAr   String
+  gradient        String    // Tailwind gradient classes
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("quick_tips")
+  @@index([order])
+}
+
+// 2. Visa Information (معلومات التأشيرة)
+model VisaRequirement {
+  id              String    @id @default(cuid())
+  itemAr          String
+  itemEn          String
+  icon            String    // Emoji
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("visa_requirements")
+  @@index([order])
+}
+
+// 3. Flight Routes (خطوط الطيران)
+model FlightRoute {
+  id              String    @id @default(cuid())
+  fromAr          String
+  fromEn          String
+  airline         String
+  duration        String
+  frequencyAr     String
+  frequencyEn     String
+  price           String
+  icon            String    // Emoji (country flag)
+  gradient        String    // Tailwind gradient
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("flight_routes")
+  @@index([order])
+}
+
+// 4. Local Transportation (النقل المحلي)
+model LocalTransport {
+  id              String    @id @default(cuid())
+  typeAr          String
+  typeEn          String
+  descriptionAr   String?   @db.Text
+  descriptionEn   String?   @db.Text
+  priceAr         String
+  priceEn         String
+  icon            String    // Emoji
+  gradient        String    // Tailwind gradient
+  features        String[]  // JSON array of features
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("local_transport")
+  @@index([order])
+}
+
+// 5. Accommodation Types (أنواع الإقامة)
+model AccommodationType {
+  id              String    @id @default(cuid())
+  typeAr          String
+  typeEn          String
+  descriptionAr   String?   @db.Text
+  descriptionEn   String?   @db.Text
+  priceAr         String
+  priceEn         String
+  icon            String    // Emoji
+  rating          Int       @default(3)
+  gradient        String    // Tailwind gradient
+  features        String[]  // JSON array
+  examples        String[]  // JSON array of examples
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("accommodation_types")
+  @@index([order])
+}
+
+// 6. Safety Tips (نصائح السلامة)
+model SafetyCategory {
+  id              String    @id @default(cuid())
+  categoryAr      String
+  categoryEn      String
+  icon            String    // Emoji
+  gradient        String    // Tailwind gradient
+  tips            String[]  // JSON array of tips
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("safety_categories")
+  @@index([order])
+}
+
+// 7. Emergency Contacts (جهات اتصال الطوارئ)
+model EmergencyContact {
+  id              String    @id @default(cuid())
+  nameAr          String
+  nameEn          String
+  number          String
+  icon            String    // Emoji
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("emergency_contacts")
+  @@index([order])
+}
+
+// 8. Packing List (قائمة الأمتعة)
+model PackingCategory {
+  id              String    @id @default(cuid())
+  categoryAr      String
+  categoryEn      String
+  icon            String    // Emoji
+  items           String[]  // JSON array of items
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("packing_categories")
+  @@index([order])
+}
+
+// 9. Travel Guide Settings (إعدادات دليل السفر)
+model TravelGuideSetting {
+  id                    String    @id @default(cuid())
+  
+  // Hero Section
+  heroTitleAr           String    @default("دليل السفر")
+  heroTitleEn           String    @default("Travel Guide")
+  heroSubtitleAr        String?   @db.Text
+  heroSubtitleEn        String?   @db.Text
+  
+  // Visa Section
+  visaTitleAr           String    @default("التأشيرات ومتطلبات الدخول")
+  visaTitleEn           String    @default("Visa & Entry Requirements")
+  
+  // Transportation Section  
+  transportTitleAr      String    @default("النقل والمواصلات")
+  transportTitleEn      String    @default("Transportation")
+  
+  // Accommodation Section
+  accommodationTitleAr  String    @default("خيارات الإقامة")
+  accommodationTitleEn  String    @default("Accommodation Options")
+  
+  // Best Time Section
+  bestTimeTitleAr       String    @default("أفضل وقت للزيارة")
+  bestTimeTitleEn       String    @default("Best Time to Visit")
+  peakSeasonAr          String    @default("أكتوبر - مارس")
+  peakSeasonEn          String    @default("October - March")
+  offSeasonAr           String    @default("يونيو - سبتمبر")
+  offSeasonEn           String    @default("June - September")
+  
+  // Safety Section
+  safetyTitleAr         String    @default("نصائح السلامة")
+  safetyTitleEn         String    @default("Safety Tips")
+  
+  // CTA Section
+  ctaTitleAr            String    @default("جاهز لرحلتك إلى سقطرى؟")
+  ctaTitleEn            String    @default("Ready for Your Socotra Adventure?")
+  ctaDescriptionAr      String?   @db.Text
+  ctaDescriptionEn      String?   @db.Text
+  
+  updatedAt             DateTime  @updatedAt
+
+  @@map("travel_guide_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ Settings Management
+// ═══════════════════════════════════════════════════════════════
+
+model Setting {
+  id              String    @id @default(cuid())
+  key             String    @unique
+  value           String    @db.Text
+  type            String    @default("string") // string, number, boolean, json
+  category        String?
+  description     String?
+  
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("settings")
+  @@index([key])
+  @@index([category])
+}
