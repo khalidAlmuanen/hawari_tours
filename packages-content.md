@@ -1,0 +1,171 @@
+# بيانات الباقات السياحية (لوحة التحكم)
+
+## الحقول الأساسية لكل باقة
+- title: اسم الباقة (EN)
+- titleAr: اسم الباقة (AR)
+- price: السعر (رقم)
+- duration: المدة (EN)
+- durationAr: المدة (AR)
+- features: قائمة المميزات (EN)
+- featuresAr: قائمة المميزات (AR)
+- gradient: تدرج اللون (Tailwind)
+- isPopular: شارة الأكثر شعبية (true/false)
+- isFeatured: مميزة (true/false)
+- isActive: حالة التفعيل (true/false)
+- order: ترتيب الظهور (رقم)
+
+## 1) باقة المغامرة الأساسية
+- title: Adventure Starter
+- titleAr: باقة البداية للمغامرة
+- price: 950
+- duration: 7 days / 7 nights
+- durationAr: 7 أيام / 7 ليالي
+- gradient: from-gray-500 to-gray-700
+- isPopular: false
+- isFeatured: false
+- isActive: true
+- order: 1
+- features:
+  - Full camping
+  - All meals
+  - Local guide
+  - Internal transport
+  - Camping equipment
+- featuresAr:
+  - تخييم كامل
+  - جميع الوجبات
+  - مرشد محلي
+  - النقل الداخلي
+  - معدات التخييم
+
+## 2) باقة الاستكشاف القياسية
+- title: Explorer Standard
+- titleAr: باقة الاستكشاف القياسية
+- price: 1200
+- duration: 7 days / 6 nights
+- durationAr: 7 أيام / 6 ليالي
+- gradient: from-green-500 to-emerald-600
+- isPopular: true
+- isFeatured: true
+- isActive: true
+- order: 2
+- features:
+  - Camping + Hotel
+  - All meals
+  - Professional guide
+  - Full transport
+  - High-quality equipment
+  - Visit all highlights
+- featuresAr:
+  - تخييم + فندق
+  - جميع الوجبات
+  - مرشد محترف
+  - النقل الكامل
+  - معدات عالية الجودة
+  - زيارة جميع المعالم
+
+## 3) باقة الرفاهية المميزة
+- title: Premium Luxury
+- titleAr: باقة الرفاهية المميزة
+- price: 1800
+- duration: 10 days / 9 nights
+- durationAr: 10 أيام / 9 ليالي
+- gradient: from-purple-500 to-pink-600
+- isPopular: false
+- isFeatured: true
+- isActive: true
+- order: 3
+- features:
+  - Luxury hotel stay
+  - Premium meals
+  - Private guide
+  - VIP transport
+  - Private boat trip
+  - Pro photography
+  - Full insurance
+- featuresAr:
+  - إقامة فندقية فاخرة
+  - وجبات فاخرة
+  - مرشد خاص
+  - نقل خاص VIP
+  - رحلة بحرية خاصة
+  - تصوير احترافي
+  - تأمين شامل
+
+## 4) باقة عائلية مريحة
+- title: Family Comfort
+- titleAr: باقة عائلية مريحة
+- price: 1350
+- duration: 8 days / 7 nights
+- durationAr: 8 أيام / 7 ليالي
+- gradient: from-blue-500 to-indigo-600
+- isPopular: true
+- isFeatured: false
+- isActive: true
+- order: 4
+- features:
+  - Family-friendly itinerary
+  - Kid-safe activities
+  - Comfortable transport
+  - Mixed hotel & camp
+  - Daily meals
+  - Beach day
+- featuresAr:
+  - برنامج مناسب للعائلات
+  - أنشطة آمنة للأطفال
+  - نقل مريح
+  - فندق + مخيم
+  - وجبات يومية
+  - يوم شاطئي
+
+## 5) باقة الطبيعة والجبال
+- title: Nature & Mountains
+- titleAr: باقة الطبيعة والجبال
+- price: 1150
+- duration: 6 days / 5 nights
+- durationAr: 6 أيام / 5 ليالي
+- gradient: from-teal-500 to-cyan-600
+- isPopular: false
+- isFeatured: false
+- isActive: true
+- order: 5
+- features:
+  - Mountain hiking
+  - Sunrise viewpoints
+  - Eco-friendly camps
+  - Local cuisine
+  - Waterfall visit
+  - Photography spots
+- featuresAr:
+  - رحلات مشي جبلية
+  - نقاط شروق مميزة
+  - مخيمات صديقة للبيئة
+  - مأكولات محلية
+  - زيارة شلالات
+  - مواقع تصوير طبيعية
+
+## 6) باقة الشاطئ والاسترخاء
+- title: Beach Relax
+- titleAr: باقة الشاطئ والاسترخاء
+- price: 1050
+- duration: 5 days / 4 nights
+- durationAr: 5 أيام / 4 ليالي
+- gradient: from-orange-500 to-red-600
+- isPopular: false
+- isFeatured: true
+- isActive: true
+- order: 6
+- features:
+  - Beach camping
+  - Snorkeling trip
+  - Sunset cruise
+  - Seafood meals
+  - Yoga session
+  - Airport transfers
+- featuresAr:
+  - تخييم شاطئي
+  - رحلة سنوركلينج
+  - رحلة غروب بحرية
+  - وجبات بحرية
+  - جلسة يوغا
+  - نقل من وإلى المطار

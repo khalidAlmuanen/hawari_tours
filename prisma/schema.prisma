@@ -1,0 +1,2096 @@
+// ═══════════════════════════════════════════════════════════════
+// 🗄️ DATABASE SCHEMA - Prisma
+// قاعدة بيانات كاملة لمشروع Hawarl Tours
+// ═══════════════════════════════════════════════════════════════
+
+// This is your Prisma schema file
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📞 Contact Page Settings
+// ═══════════════════════════════════════════════════════════════
+model ContactSetting {
+  id        String   @id @default(cuid())
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_settings")
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// 👤 User Management
+// ═══════════════════════════════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          UserRole  @default(USER)
+  phone         String?
+  avatar        String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  bookings Booking[]
+  reviews  Review[]
+  messages Message[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✈️ Tours Management
+// ═══════════════════════════════════════════════════════════════
+
+model Tour {
+  id            String       @id @default(cuid())
+  title         String
+  titleAr       String
+  slug          String       @unique
+  description   String       @db.Text
+  descriptionAr String       @db.Text
+  price         Float
+  discount      Float?       @default(0)
+  duration      Int // في الأيام
+  maxPeople     Int
+  difficulty    Difficulty   @default(MODERATE)
+  category      TourCategory
+  featured      Boolean      @default(false)
+  isActive      Boolean      @default(true)
+
+  // Media
+  coverImage String
+  cardImage  String? // صورة مخصصة للبطاقة (اختياري)
+  images     String[]
+  videoUrl   String?
+
+  // Location
+  location   String
+  locationAr String
+  latitude   Float?
+  longitude  Float?
+
+  // Itinerary
+  itinerary Json? // تفاصيل البرنامج اليومي
+
+  // Includes/Excludes
+  includes String[]
+  excludes String[]
+  
+  // Features (Available Amenities/Highlights)
+  features   String[]
+  featuresAr String[]
+
+  // Stats
+  rating        Float @default(0)
+  reviewsCount  Int   @default(0)
+  bookingsCount Int   @default(0)
+  viewsCount    Int   @default(0)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  bookings  Booking[]
+  reviews   Review[]
+  tourDates TourDate[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+  @@index([bookingsCount])
+  @@index([price])
+  @@index([rating])
+  @@map("tours")
+}
+
+enum Difficulty {
+  EASY
+  MODERATE
+  CHALLENGING
+  DIFFICULT
+}
+
+enum TourCategory {
+  ADVENTURE
+  CULTURAL
+  NATURE
+  BEACH
+  WILDLIFE
+  HERITAGE
+}
+
+enum HotelStatus {
+  ACTIVE
+  DRAFT
+  SUSPENDED
+}
+
+enum BookingType {
+  TOUR
+  HOTEL
+  CAR
+}
+
+model Hotel {
+  id                 String      @id @default(cuid())
+  name               String
+  nameAr             String
+  slug               String      @unique
+  description        String      @db.Text
+  descriptionAr      String      @db.Text
+  shortDescription   String?     @db.Text
+  shortDescriptionAr String?     @db.Text
+  pricePerNight      Float
+  discount           Float?      @default(0)
+  rating             Float       @default(0)
+  reviewsCount       Int         @default(0)
+  roomsCount         Int         @default(0)
+  status             HotelStatus @default(ACTIVE)
+  featured           Boolean     @default(false)
+
+  coverImage String
+  images     String[]
+  videoUrl   String?
+
+  location   String
+  locationAr String
+  latitude   Float?
+  longitude  Float?
+
+  amenities   String[]
+  amenitiesAr String[]
+  highlights  String[]
+  highlightsAr String[]
+
+  checkInTime          String?
+  checkOutTime         String?
+  cancellationPolicy   String?   @db.Text
+  cancellationPolicyAr String?   @db.Text
+
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+
+  viewsCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([slug])
+  @@index([featured])
+  @@index([status])
+  @@index([pricePerNight])
+  @@index([rating])
+  @@map("hotels")
+}
+
+model HotelsPageSetting {
+  id String @id @default(cuid())
+
+  heroImage        String @default("/img/hero/socotra-3.jpg")
+  heroBadgeAr      String @default("حجز فنادق فاخرة في سقطرى")
+  heroBadgeEn      String @default("Luxury Hotel Booking in Socotra")
+  heroTitleAr      String @default("تجربة إقامة مبهرة بتفاصيل ملكية")
+  heroTitleEn      String @default("A Royal Stay Crafted with Luxury")
+  heroSubtitleAr   String @default("اختر غرفتك المثالية مع عروض حصرية، خدمات خاصة، وتجارب مصممة بعناية لكل رحلة.") @db.Text
+  heroSubtitleEn   String @default("Choose your perfect suite with exclusive offers, private services, and curated experiences.") @db.Text
+  primaryButtonAr  String @default("احجز الآن")
+  primaryButtonEn  String @default("Book Now")
+  primaryButtonLink String @default("/contact")
+  secondaryButtonAr String @default("استكشف الجولات")
+  secondaryButtonEn String @default("Explore Tours")
+  secondaryButtonLink String @default("/tours")
+
+  stats Json @default("[{\"value\":\"28+\",\"labelAr\":\"فنادق فاخرة\",\"labelEn\":\"Luxury Hotels\"},{\"value\":\"4.8\",\"labelAr\":\"متوسط التقييم\",\"labelEn\":\"Avg Rating\"},{\"value\":\"24/7\",\"labelAr\":\"خدمة VIP\",\"labelEn\":\"VIP Service\"}]")
+
+  searchTitleAr     String @default("بحث ذكي عن الفندق")
+  searchTitleEn     String @default("Smart Hotel Search")
+  searchButtonAr    String @default("عرض الخيارات الفاخرة")
+  searchButtonEn    String @default("Show Luxury Options")
+  searchHintLeftAr  String @default("حجز فوري مضمون")
+  searchHintLeftEn  String @default("Instant booking guaranteed")
+  searchHintRightAr String @default("دعم 24/7")
+  searchHintRightEn String @default("24/7 Support")
+
+  filtersTitleAr String @default("فلترة فاخرة")
+  filtersTitleEn String @default("Luxury Filters")
+
+  experiences Json @default("[{\"titleAr\":\"خدمة مضيف خاص 24/7\",\"titleEn\":\"Private host 24/7\",\"descAr\":\"تنسيق حجوزاتك وتنقلاتك بلمسة شخصية\",\"descEn\":\"Personalized concierge for every detail\",\"icon\":\"✨\"},{\"titleAr\":\"جلسات عشاء على الشاطئ\",\"titleEn\":\"Beachfront dining\",\"descAr\":\"قوائم مصممة خصيصا بإطلالة ساحرة\",\"descEn\":\"Custom menus with cinematic views\",\"icon\":\"🍽️\"},{\"titleAr\":\"تجارب سبا صحية\",\"titleEn\":\"Wellness spa rituals\",\"descAr\":\"جلسات استرخاء بمواد طبيعية محلية\",\"descEn\":\"Signature treatments with local essences\",\"icon\":\"🫧\"}]")
+
+  vipTitleAr String @default("خدمة حجز VIP عبر فريقنا")
+  vipTitleEn String @default("VIP Booking Concierge")
+  vipDescriptionAr String @default("نوفر لك تفاوض على أفضل الأسعار، ترقية الغرف، وتجهيزات استثنائية لرحلتك القادمة.") @db.Text
+  vipDescriptionEn String @default("We secure exclusive rates, room upgrades, and bespoke arrangements for your next escape.") @db.Text
+  vipPrimaryButtonAr String @default("تواصل مع المستشار")
+  vipPrimaryButtonEn String @default("Talk to Concierge")
+  vipPrimaryButtonLink String @default("/contact")
+  vipSecondaryButtonAr String @default("أضف جولة فاخرة")
+  vipSecondaryButtonEn String @default("Add a luxury tour")
+  vipSecondaryButtonLink String @default("/tours")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("hotels_page_settings")
+}
+
+model TourDate {
+  id             String   @id @default(cuid())
+  tourId         String
+  startDate      DateTime
+  endDate        DateTime
+  availableSpots Int
+  price          Float
+  isActive       Boolean  @default(true)
+
+  tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@index([tourId])
+  @@index([startDate])
+  @@map("tour_dates")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📅 Bookings Management
+// ═══════════════════════════════════════════════════════════════
+
+model Booking {
+  id            String @id @default(cuid())
+  bookingNumber String @unique
+
+  // User & Tour / Hotel / Car
+  userId String
+  tourId String?
+  hotelId String?
+  carId   String?
+  bookingType BookingType @default(TOUR)
+
+  // Details
+  startDate      DateTime
+  endDate        DateTime
+  numberOfPeople Int
+  numberOfRooms  Int?    @default(1)
+  totalPrice     Float
+  paidAmount     Float    @default(0)
+
+  // Status
+  status        BookingStatus  @default(PENDING)
+  paymentStatus PaymentStatus  @default(PENDING)
+  paymentMethod PaymentMethod?
+
+  // Contact Info
+  customerName  String
+  customerEmail String
+  customerPhone String
+
+  // Special Requests
+  specialRequests String? @db.Text
+  notes           String? @db.Text
+
+  // Timestamps
+  confirmedAt DateTime?
+  cancelledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id])
+  tour     Tour?     @relation(fields: [tourId], references: [id])
+  hotel    Hotel?    @relation(fields: [hotelId], references: [id])
+  car      Car?      @relation(fields: [carId], references: [id])
+  payments Payment[]
+
+  @@index([userId])
+  @@index([tourId])
+  @@index([hotelId])
+  @@index([carId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([bookingNumber])
+  @@index([createdAt])
+  @@index([totalPrice])
+  @@index([customerEmail])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  CASH
+  PAYPAL
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  bookingId     String
+  amount        Float
+  method        PaymentMethod
+  status        String
+  transactionId String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@map("payments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🏛️ Destinations Management
+// ═══════════════════════════════════════════════════════════════
+
+model Destination {
+  id            String @id @default(cuid())
+  name          String
+  nameAr        String
+  slug          String @unique
+  description   String @db.Text
+  descriptionAr String @db.Text
+
+  // Media (keep old fields for compatibility)
+  image      String? // Legacy field
+  coverImage String?
+  gallery    String[] // Legacy field
+  images     String[]
+
+  // Location
+  latitude  Float?
+  longitude Float?
+  region    String? // Legacy field
+
+  // Details
+  category        DestinationCategory @default(NATURE)
+  highlights      String[]            @default([])
+  activities      String[]            @default([])
+  bestTimeToVisit String?
+
+  // Special Designations
+  unesco Boolean @default(false)
+
+  // Stats
+  viewsCount Int @default(0)
+  toursCount Int @default(0)
+
+  // Status
+  featured Boolean @default(false)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+  @@map("destinations")
+}
+
+enum DestinationCategory {
+  NATURE
+  HERITAGE
+  BEACH
+  MOUNTAIN
+  ARCHAEOLOGICAL
+  WILDLIFE
+  CULTURAL
+  URBAN
+  ADVENTURE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📰 News Management
+// ═══════════════════════════════════════════════════════════════
+
+model News {
+  id        String @id @default(cuid())
+  title     String
+  titleAr   String
+  slug      String @unique
+  excerpt   String
+  excerptAr String
+  content   String @db.Text
+  contentAr String @db.Text
+
+  // Media
+  coverImage String
+  images     String[]
+
+  // Categorization
+  category NewsCategory
+  tags     String[]
+
+  // Publishing
+  featured    Boolean   @default(false)
+  breaking    Boolean   @default(false)
+  trending    Boolean   @default(false)
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+
+  // Stats
+  viewsCount Int @default(0)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  // Author
+  authorId   String?
+  authorName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+  @@map("news")
+}
+
+enum NewsCategory {
+  TOURISM
+  ENVIRONMENT
+  WEATHER
+  UNESCO
+  CULTURE
+  EVENTS
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🖼️ Gallery Management
+// ═══════════════════════════════════════════════════════════════
+
+model GalleryImage {
+  id            String  @id @default(cuid())
+  title         String?
+  titleAr       String?
+  description   String?
+  descriptionAr String?
+
+  // Media
+  url       String
+  thumbnail String?
+
+  // Categorization
+  category GalleryCategory
+  tags     String[]
+
+  // Metadata
+  width  Int?
+  height Int?
+  size   Int?
+  format String?
+
+  featured Boolean @default(false)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@map("gallery_images")
+}
+
+enum GalleryCategory {
+  DESTINATIONS
+  TOURS
+  NATURE
+  CULTURE
+  WILDLIFE
+  PEOPLE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 💬 Testimonials/Reviews Management
+// ═══════════════════════════════════════════════════════════════
+
+model Testimonial {
+  id             String  @id @default(cuid())
+  customerName   String
+  customerNameAr String?
+  customerEmail  String?
+  customerPhone  String?
+  customerImage  String?
+  country        String // Country name in English
+  countryAr      String? // Country name in Arabic
+  countryCode    String // ISO country code (e.g., "US", "SA")
+
+  content   String  @db.Text
+  contentAr String? @db.Text
+
+  rating     Int // 1-5
+  tourName   String?
+  tourNameAr String?
+
+  // Video Support
+  hasVideo Boolean @default(false)
+  videoUrl String? // YouTube or other video platform URL
+
+  // Dates
+  date DateTime @default(now()) // When the tour was taken
+
+  featured  Boolean @default(false)
+  verified  Boolean @default(false)
+  published Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([featured])
+  @@index([country])
+  @@map("testimonials")
+}
+
+model Review {
+  id     String @id @default(cuid())
+  userId String
+  tourId String
+
+  rating  Int // 1-5
+  title   String?
+  comment String  @db.Text
+
+  // Helpful count
+  helpfulCount Int @default(0)
+
+  // Moderation
+  approved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  tour Tour @relation(fields: [tourId], references: [id])
+
+  @@index([userId])
+  @@index([tourId])
+  @@index([approved])
+  @@map("reviews")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✉️ Messages/Contact Management
+// ═══════════════════════════════════════════════════════════════
+
+model Message {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  subject String
+  message String  @db.Text
+
+  // Optional user link
+  userId String?
+
+  // Status
+  status    MessageStatus @default(UNREAD)
+  repliedAt DateTime?
+  reply     String?       @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([email])
+  @@map("messages")
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📊 Analytics & Stats
+// ═══════════════════════════════════════════════════════════════
+
+model Analytics {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // Traffic
+  pageViews      Int    @default(0)
+  uniqueVisitors Int    @default(0)
+  bounceRate     Float?
+  avgSessionTime Int? // in seconds
+
+  // Conversions
+  bookings Int   @default(0)
+  revenue  Float @default(0)
+
+  // Sources
+  directTraffic Int @default(0)
+  organicSearch Int @default(0)
+  socialMedia   Int @default(0)
+  referral      Int @default(0)
+
+  // Devices
+  desktop Int @default(0)
+  mobile  Int @default(0)
+  tablet  Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([date])
+  @@index([date])
+  @@map("analytics")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🎬 Gallery Video Management (معرض الفيديوهات)
+// ═══════════════════════════════════════════════════════════════
+
+model GalleryVideo {
+  id            String          @id @default(cuid())
+  title         String
+  titleAr       String
+  description   String?         @db.Text
+  descriptionAr String?         @db.Text
+  videoUrl      String // YouTube/Vimeo URL
+  thumbnail     String? // Custom thumbnail URL
+  duration      String? // Format: "5:30"
+  category      GalleryCategory
+  featured      Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  viewCount     Int             @default(0)
+  order         Int             @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([featured])
+  @@index([order])
+  @@map("gallery_videos")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🌐 Virtual Tours 360° Management (جولات افتراضية)
+// ═══════════════════════════════════════════════════════════════
+
+model VirtualTour {
+  id            String  @id @default(cuid())
+  title         String
+  titleAr       String
+  description   String? @db.Text
+  descriptionAr String? @db.Text
+  location      String
+  locationAr    String
+  tourUrl       String // URL للجولة الافتراضية
+  icon          String  @default("🌐") // Emoji icon
+  gradient      String  @default("from-blue-500 to-cyan-600")
+  featured      Boolean @default(false)
+  isActive      Boolean @default(true)
+  viewCount     Int     @default(0)
+  order         Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([featured])
+  @@index([order])
+  @@map("virtual_tours")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📱 Instagram Posts (منشورات إنستغرام)
+// ═══════════════════════════════════════════════════════════════
+
+model InstagramPost {
+  id       String  @id @default(cuid())
+  imageUrl String
+  postUrl  String? // رابط المنشور على Instagram
+  likes    Int     @default(0)
+  comments Int     @default(0)
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("instagram_posts")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📸 Gallery Page Settings (إعدادات صفحة المعرض)
+// ═══════════════════════════════════════════════════════════════
+
+model GallerySetting {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroTitle         String  @default("Explore Socotra")
+  heroTitleAr       String  @default("استكشف سقطرى")
+  heroSubtitle      String? @db.Text
+  heroSubtitleAr    String? @db.Text
+  heroImage         String?
+  heroDescription   String? @db.Text
+  heroDescriptionAr String? @db.Text
+
+  // Instagram Settings
+  instagramUsername      String  @default("@HawariTours")
+  instagramUrl           String  @default("https://instagram.com/hawaritours")
+  instagramTitle         String  @default("Follow us on Instagram")
+  instagramTitleAr       String  @default("تابعنا على إنستغرام")
+  instagramDescription   String?
+  instagramDescriptionAr String?
+
+  // Download Section
+  downloadTitle         String  @default("Want High-Resolution Copy?")
+  downloadTitleAr       String  @default("هل تريد نسخة عالية الجودة؟")
+  downloadDescription   String? @db.Text
+  downloadDescriptionAr String? @db.Text
+  downloadEnabled       Boolean @default(true)
+
+  // CTA Section
+  ctaTitle         String  @default("Liked the Photos? Visit Socotra Yourself!")
+  ctaTitleAr       String  @default("هل أعجبتك الصور؟ زر سقطرى بنفسك!")
+  ctaDescription   String? @db.Text
+  ctaDescriptionAr String? @db.Text
+  ctaButtonText    String  @default("Browse Tours")
+  ctaButtonTextAr  String  @default("تصفح الرحلات")
+
+  // Stats (can be auto-calculated or manual)
+  statsEnabled      Boolean @default(true)
+  virtualToursCount String  @default("10+")
+  highQualityLabel  String  @default("4K")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("gallery_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🧳 Travel Guide - Complete Management System
+// نظام إدارة دليل السفر الشامل
+// ═══════════════════════════════════════════════════════════════
+
+// 1. Quick Tips (النصائح السريعة)
+model QuickTip {
+  id            String  @id @default(cuid())
+  icon          String // Emoji
+  title         String
+  titleAr       String
+  description   String
+  descriptionAr String
+  gradient      String // Tailwind gradient classes
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("quick_tips")
+}
+
+// 2. Visa Information (معلومات التأشيرة)
+model VisaRequirement {
+  id       String  @id @default(cuid())
+  itemAr   String
+  itemEn   String
+  icon     String // Emoji
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("visa_requirements")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🔔 Notifications Management
+// ═══════════════════════════════════════════════════════════════
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // BOOKING, REVIEW, MESSAGE, SYSTEM
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Optional: Link to specific resources
+  bookingId String?
+  reviewId  String?
+  messageId String?
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// 3. Flight Routes (خطوط الطيران)
+model FlightRoute {
+  id          String  @id @default(cuid())
+  fromAr      String
+  fromEn      String
+  airline     String
+  duration    String
+  frequencyAr String
+  frequencyEn String
+  price       String
+  icon        String // Emoji (country flag)
+  gradient    String // Tailwind gradient
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("flight_routes")
+}
+
+// 4. Local Transportation (النقل المحلي)
+model LocalTransport {
+  id            String   @id @default(cuid())
+  typeAr        String
+  typeEn        String
+  descriptionAr String?  @db.Text
+  descriptionEn String?  @db.Text
+  priceAr       String
+  priceEn       String
+  icon          String // Emoji
+  gradient      String // Tailwind gradient
+  features      String[] // JSON array of features
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("local_transport")
+}
+
+// 5. Accommodation Types (أنواع الإقامة)
+model AccommodationType {
+  id            String   @id @default(cuid())
+  typeAr        String
+  typeEn        String
+  descriptionAr String?  @db.Text
+  descriptionEn String?  @db.Text
+  priceAr       String
+  priceEn       String
+  icon          String // Emoji
+  rating        Int      @default(3)
+  gradient      String // Tailwind gradient
+  features      String[] // JSON array
+  examples      String[] // JSON array of examples
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("accommodation_types")
+}
+
+// 7. Safety Tips (نصائح السلامة)
+model SafetyCategory {
+  id         String   @id @default(cuid())
+  categoryAr String
+  categoryEn String
+  icon       String // Emoji
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tips SafetyTip[]
+
+  @@index([order])
+  @@map("safety_categories")
+}
+
+model SafetyTip {
+  id          String @id @default(cuid())
+  categoryId  String
+  tipAr       String
+  tipEn       String
+  isImportant Boolean @default(false)
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category SafetyCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([order])
+  @@map("safety_tips")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📜 History & Timeline Management
+// ═══════════════════════════════════════════════════════════════
+
+model TimelineEvent {
+  id            String   @id @default(cuid())
+  year          String
+  yearEn        String?
+  era           String   // ancient, colonial, modern
+  titleEn       String
+  titleAr       String
+  descriptionEn String   @db.Text
+  descriptionAr String   @db.Text
+  icon          String   // Emoji
+  color         String   // Tailwind gradient
+  order         Int      @default(0)
+  isActive      Boolean  @default(true) // Published
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([era])
+  @@index([order])
+  @@map("timeline_events")
+}
+
+model ArchaeologicalSite {
+  id             String   @id @default(cuid())
+  nameEn         String
+  nameAr         String
+  periodEn       String   @default("Ancient Period")
+  periodAr       String   @default("فترة قديمة")
+  descriptionEn  String   @db.Text
+  descriptionAr  String   @db.Text
+  significanceEn String?  @db.Text
+  significanceAr String?  @db.Text
+  locationEn     String?
+  locationAr     String?
+  accessEn       String?
+  accessAr       String?
+  gradient       String   @default("from-amber-500 to-orange-600")   // Tailwind gradient
+  imageUrl       String?
+  featured       Boolean  @default(false)
+  isActive       Boolean  @default(true) // Published
+  order          Int      @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([featured])
+  @@index([order])
+  @@map("archaeological_sites")
+}
+
+model HistoricalSection {
+  id            String   @id @default(cuid())
+  slug          String   @unique // ancient, colonial, modern
+  titleEn       String
+  titleAr       String
+  contentEn     String   @db.Text
+  contentAr     String   @db.Text
+  isActive      Boolean  @default(true) // Published
+
+  updatedAt     DateTime @updatedAt
+
+  @@map("historical_sections")
+}
+
+model HistoryPageSetting {
+  id            String   @id @default(cuid())
+  
+  // Hero Section
+  heroTitleEn   String   @default("History of Socotra")
+  heroTitleAr   String   @default("تاريخ سقطرى")
+  heroSubtitleEn String? @db.Text
+  heroSubtitleAr String? @db.Text
+  heroImage     String?  // URL to hero background image
+
+  // CTA Section
+  ctaTitleEn    String   @default("Discover Socotra History Yourself")
+  ctaTitleAr    String   @default("اكتشف تاريخ سقطرى بنفسك")
+  ctaTextEn     String?  @db.Text
+  ctaTextAr     String?  @db.Text
+  ctaImage      String?  // URL to CTA background image
+  
+  // SEO
+  metaTitleEn   String?
+  metaTitleAr   String?
+  metaDescEn    String?  @db.Text
+  metaDescAr    String?  @db.Text
+
+  // Extra Content (JSON for flexibility: Ancient Cards, Badges, etc.)
+  extraContent  Json?    @default("{}")
+  
+  updatedAt     DateTime @updatedAt
+
+  @@map("history_page_settings")
+}
+
+
+// 7. Emergency Contacts (جهات اتصال الطوارئ)
+model EmergencyContact {
+  id       String  @id @default(cuid())
+  nameAr   String
+  nameEn   String
+  number   String
+  icon     String // Emoji
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("emergency_contacts")
+}
+
+// 8. Packing List (قائمة الأمتعة)
+model PackingCategory {
+  id         String   @id @default(cuid())
+  categoryAr String
+  categoryEn String
+  icon       String // Emoji
+  items      String[] // JSON array of items
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("packing_categories")
+}
+
+// 9. Travel Guide Settings (إعدادات دليل السفر)
+model TravelGuideSetting {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroTitleAr    String  @default("دليل السفر")
+  heroTitleEn    String  @default("Travel Guide")
+  heroSubtitleAr String? @db.Text
+  heroSubtitleEn String? @db.Text
+
+  // Visa Section
+  visaTitleAr String @default("التأشيرات ومتطلبات الدخول")
+  visaTitleEn String @default("Visa & Entry Requirements")
+
+  // Transportation Section  
+  transportTitleAr String @default("النقل والمواصلات")
+  transportTitleEn String @default("Transportation")
+
+  // Accommodation Section
+  accommodationTitleAr String @default("خيارات الإقامة")
+  accommodationTitleEn String @default("Accommodation Options")
+
+  // Best Time Section
+  bestTimeTitleAr String @default("أفضل وقت للزيارة")
+  bestTimeTitleEn String @default("Best Time to Visit")
+  peakSeasonAr    String @default("أكتوبر - مارس")
+  peakSeasonEn    String @default("October - March")
+  offSeasonAr     String @default("يونيو - سبتمبر")
+  offSeasonEn     String @default("June - September")
+
+  // Safety Section
+  safetyTitleAr String @default("نصائح السلامة")
+  safetyTitleEn String @default("Safety Tips")
+
+  // CTA Section
+  ctaTitleAr       String  @default("جاهز لرحلتك إلى سقطرى؟")
+  ctaTitleEn       String  @default("Ready for Your Socotra Adventure?")
+  ctaDescriptionAr String? @db.Text
+  ctaDescriptionEn String? @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("travel_guide_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ Settings Management
+// ═══════════════════════════════════════════════════════════════
+
+model DestinationsPageSetting {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroImage       String  @default("/img/destinations/socotra-hero.jpg")
+  heroTitleEn     String  @default("Tourist Destinations")
+  heroTitleAr     String  @default("المعالم السياحية")
+  heroSubtitleEn  String? @default("Explore over 50 unique tourist destinations in Socotra Island") @db.Text
+  heroSubtitleAr  String? @default("استكشف أكثر من 50 معلماً سياحياً فريداً في جزيرة سقطرى") @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("destinations_page_settings")
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// 📖 About Page Management (إدارة صفحة من نحن)
+// ═══════════════════════════════════════════════════════════════
+
+model AboutSection {
+  id        String           @id @default(cuid())
+  type      AboutSectionType
+  titleEn   String
+  titleAr   String
+  contentEn String           @db.Text
+  contentAr String           @db.Text
+  imageUrl  String?
+  order     Int              @default(0)
+  isActive  Boolean          @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([order])
+  @@map("about_sections")
+}
+
+enum AboutSectionType {
+  GEOGRAPHY
+  NATURE
+  CULTURE
+  HISTORY
+}
+
+model EndemicSpecies {
+  id                 String          @id @default(cuid())
+  nameEn             String
+  nameAr             String
+  scientificName     String
+  descriptionEn      String          @db.Text
+  descriptionAr      String          @db.Text
+  imageUrl           String
+  category           SpeciesCategory
+  conservationStatus String          @default("Not Evaluated")
+  facts              String[] // Array of interesting facts
+  order              Int             @default(0)
+  isActive           Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([order])
+  @@map("endemic_species")
+}
+
+enum SpeciesCategory {
+  FLORA
+  FAUNA
+  MARINE
+  BIRDS
+}
+
+model CulturalElement {
+  id            String  @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
+  imageUrl      String?
+  icon          String? // Emoji or icon class
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("cultural_elements")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📝 Blog Management (إدارة المدونة)
+// ═══════════════════════════════════════════════════════════════
+
+model Blog {
+  id              String   @id @default(cuid())
+  titleEn         String
+  titleAr         String
+  slug            String   @unique
+  excerptEn       String   @db.Text
+  excerptAr       String   @db.Text
+  contentEn       String   @db.Text
+  contentAr       String   @db.Text
+  coverImage      String?
+  category        BlogCategory
+  
+  // Relations
+  authorId        String?
+  author          BlogAuthor? @relation(fields: [authorId], references: [id])
+  tags            BlogTag[]
+
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+  published       Boolean  @default(false)
+  featured        Boolean  @default(false)
+  publishedAt     DateTime?
+  viewsCount      Int      @default(0)
+  commentsCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  comments        Comment[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+  @@index([featured])
+  @@map("blogs")
+}
+
+model BlogAuthor {
+  id        String   @id @default(cuid())
+  nameAr    String
+  nameEn    String
+  titleAr   String?
+  titleEn   String?
+  bioAr     String?   @db.Text
+  bioEn     String?   @db.Text
+  avatar    String?
+  socials   Json?     // e.g. { twitter: "", linkedin: "" }
+  blogs     Blog[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("blog_authors")
+}
+
+model BlogTag {
+  id        String   @id @default(cuid())
+  nameAr    String
+  nameEn    String
+  slug      String   @unique
+  blogs     Blog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_tags")
+}
+
+enum BlogCategory {
+  CULTURE
+  NATURE
+  TRAVEL
+  STORIES
+}
+
+model Comment {
+  id      String  @id @default(cuid())
+  blogId  String
+  name    String
+  email   String
+  website String?
+  content String  @db.Text
+
+  // Moderation
+  approved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId])
+  @@index([approved])
+  @@map("comments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ❓ FAQ Management (إدارة الأسئلة الشائعة)
+// ═══════════════════════════════════════════════════════════════
+
+model FAQ {
+  id         String      @id @default(cuid())
+  questionEn String
+  questionAr String
+  answerEn   String      @db.Text
+  answerAr   String      @db.Text
+  category   FAQCategory
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([order])
+  @@map("faqs")
+}
+
+enum FAQCategory {
+  GENERAL
+  TOURS
+  BOOKING
+  PAYMENT
+  TRAVEL
+  VISA
+  SAFETY
+}
+
+model ContactInfo {
+  id String @id @default(cuid())
+
+  // Contact Details
+  email     String
+  phone     String
+  whatsapp  String?
+  address   String?
+  addressAr String?
+
+  // Business Hours
+  hoursEn String?
+  hoursAr String?
+
+  // Social Media
+  facebook  String?
+  instagram String?
+  twitter   String?
+  youtube   String?
+  linkedin  String?
+
+  // Map
+  latitude  Float?
+  longitude Float?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_info")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🏛️ History Page Management (إدارة صفحة التاريخ)
+// ═══════════════════════════════════════════════════════════════
+
+model HistoricalEra {
+  id            String  @id @default(cuid())
+  nameEn        String
+  nameAr        String
+  period        String // e.g., "3000 BCE - 600 CE"
+  periodAr      String
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
+  color         String  @default("#3B82F6") // Hex color for UI
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  events HistoricalEvent[]
+
+  @@index([order])
+  @@map("historical_eras")
+}
+
+model HistoricalEvent {
+  id            String  @id @default(cuid())
+  eraId         String
+  year          String // e.g., "1507", "300 BCE"
+  titleEn       String
+  titleAr       String
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
+  icon          String? // Emoji
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  era HistoricalEra @relation(fields: [eraId], references: [id], onDelete: Cascade)
+
+  @@index([eraId])
+  @@index([order])
+  @@map("historical_events")
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// ✨ Unique Features Management (إدارة المميزات الفريدة)
+// ═══════════════════════════════════════════════════════════════
+
+model UniqueFeaturesPageSetting {
+  id            String   @id @default(cuid())
+
+  // Hero Section
+  heroTitleEn   String   @default("Unique Features")
+  heroTitleAr   String   @default("ميزات فريدة")
+  heroSubtitleEn String? @default("Found nowhere else on Earth")
+  heroSubtitleAr String? @default("لن تجدها في أي مكان آخر على الأرض")
+  heroImage     String?  // Background image
+
+  // Sections
+  beachesTitleEn    String? @default("Turquoise Shores")
+  beachesTitleAr    String? @default("شواطئ فيروزية")
+  beachesSubtitleEn String? @default("Where the ocean meets the sky in a scene found nowhere else.")
+  beachesSubtitleAr String? @default("حيث يلتقي المحيط بالسماء في مشهد لا يتكرر.")
+  cavesTitleEn      String? @default("Hidden Depths")
+  cavesTitleAr      String? @default("أسرار الكهوف")
+  cavesSubtitleEn   String? @default("Socotra features a vast network of massive limestone caves stretching for kilometers underground.")
+  cavesSubtitleAr   String? @default("تتميز سقطرى بشبكة واسعة من الكهوف الجيرية الضخمة التي تمتد لكيلومترات تحت الأرض.")
+  cavesCtaEn        String? @default("Book a Cave Tour")
+  cavesCtaAr        String? @default("احجز جولة كهوف")
+  wildlifeTitleEn   String? @default("Rare Wildlife")
+  wildlifeTitleAr   String? @default("حياة برية نادرة")
+  wildlifeSubtitleEn String? @default("Much of Socotra's reptiles and birds are found nowhere else.")
+  wildlifeSubtitleAr String? @default("الكثير من زواحف وطيور سقطرى لا توجد في أي مكان آخر.")
+
+  // SEO
+  metaTitleEn   String?
+  metaTitleAr   String?
+  metaDescEn    String?  @db.Text
+  metaDescAr    String?  @db.Text
+
+  updatedAt     DateTime @updatedAt
+
+  @@map("unique_features_page_settings")
+}
+
+model UniqueFeature {
+  id            String      @id @default(cuid())
+  type          FeatureType
+  nameEn        String
+  nameAr        String
+  descriptionEn String      @db.Text
+  descriptionAr String      @db.Text
+  images        String[] // Array of image URLs
+
+  // Additional Details
+  facts   String[] // Interesting facts
+  uses    String[] // Traditional uses (for flora)
+  threats String[] // Conservation threats
+  activitiesEn String?
+  activitiesAr String?
+  bestTimeEn   String?
+  bestTimeAr   String?
+  depth        String?
+  difficultyEn String?
+  difficultyAr String?
+  scientificName String?
+  categoryEn   String?
+  categoryAr   String?
+  sizeEn       String?
+  sizeAr       String?
+  statusEn     String?
+  statusAr     String?
+  rating       Float? @default(5)
+  icon         String?
+
+  // Conservation
+  conservationStatus   String?
+  conservationStatusAr String?
+
+  // Location (for specific features)
+  location   String?
+  locationAr String?
+  latitude   Float?
+  longitude  Float?
+
+  featured Boolean @default(false)
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([featured])
+  @@index([order])
+  @@map("unique_features")
+}
+
+enum FeatureType {
+  FLORA // Dragon Blood Tree, etc.
+  BEACH // Beaches
+  CAVE // Caves
+  MOUNTAIN // Mountains
+  WILDLIFE // Wildlife
+  GEOLOGICAL // Geological formations
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🏠 Homepage Content Management (إدارة محتوى الصفحة الرئيسية)
+// ═══════════════════════════════════════════════════════════════
+
+model HeroSlide {
+  id            String  @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  subtitleEn    String?
+  subtitleAr    String?
+  descriptionEn String? @db.Text
+  descriptionAr String? @db.Text
+  imageUrl      String
+  buttonText    String?
+  buttonTextAr  String?
+  buttonLink    String?
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("hero_slides")
+}
+
+model QuickStat {
+  id       String  @id @default(cuid())
+  labelEn  String
+  labelAr  String
+  value    String // e.g., "150+", "4.9"
+  icon     String // Emoji or icon class
+  color    String  @default("#3B82F6") // Hex color
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("quick_stats")
+}
+
+model WelcomeMessage {
+  id         String  @id @default(cuid())
+  titleEn    String
+  titleAr    String
+  subtitleEn String?
+  subtitleAr String?
+  contentEn  String  @db.Text
+  contentAr  String  @db.Text
+  imageUrl   String?
+
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@map("welcome_messages")
+}
+
+model WhyChooseUs {
+  id            String  @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
+  icon          String // Emoji
+  color         String  @default("#3B82F6") // Background color
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("why_choose_us")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ Site Settings (إعدادات الموقع)
+// ═══════════════════════════════════════════════════════════════
+
+model Settings {
+  id String @id @default(cuid())
+
+  // General Settings
+  siteName          String    @default("Hawari Tours")
+  siteNameAr        String    @default("رحلات الحواري")
+  siteDescription   String?   @db.Text
+  siteDescriptionAr String?   @db.Text
+  contactEmail      String?
+  contactPhone      String?
+  contactAddress    String?
+  contactAddressAr  String?
+
+  // Social Media
+  facebook  String?
+  instagram String?
+  twitter   String?
+  youtube   String?
+  whatsapp  String?
+
+  // Booking Settings
+  currency           String @default("USD")
+  taxRate            Float  @default(0)
+  minimumBookingDays Int    @default(1)
+  maximumBookingDays Int    @default(30)
+  cancellationDays   Int    @default(7)
+
+  // Email Settings
+  emailEnabled  Boolean @default(false)
+  emailHost     String?
+  emailPort     Int?
+  emailUser     String?
+  emailPassword String?
+  emailSecure   Boolean @default(true)
+  emailSender   String?
+
+  // Notifications
+  emailNotifications   Boolean @default(true)
+  pushNotifications    Boolean @default(false)
+  bookingNotifications Boolean @default(true)
+  messageNotifications Boolean @default(true)
+  reviewNotifications  Boolean @default(true)
+
+  // Maintenance
+  maintenanceMode      Boolean @default(false)
+  maintenanceMessage   String? @db.Text
+  maintenanceMessageAr String? @db.Text
+  allowedIPs           String[]
+
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 📦 Travel Packages (الباقات السياحية)
+// ═══════════════════════════════════════════════════════════════
+
+model TravelPackage {
+  id          String   @id @default(cuid())
+  title       String
+  titleAr     String
+  price       Float
+  duration    String
+  durationAr  String
+  features    String[] // JSON array of features
+  featuresAr  String[] // JSON array of features
+  gradient    String   @default("from-gray-500 to-gray-700")
+  
+  isPopular   Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("travel_packages")
+}
+// ═══════════════════════════════════════════════════════════════
+// 🧳 Travel Guide Management (إدارة دليل السفر)
+// ═══════════════════════════════════════════════════════════════
+
+model TravelGuideSection {
+  id        String                 @id @default(cuid())
+  type      TravelGuideSectionType @unique
+  titleEn   String?
+  titleAr   String?
+  content   Json                   @default("{}") // Flexible JSON for different section structures
+  isActive  Boolean                @default(true)
+  updatedAt DateTime               @updatedAt
+
+  @@map("travel_guide_sections")
+}
+
+enum TravelGuideSectionType {
+  QUICK_TIPS
+  VISA
+  TRANSPORT
+  ACCOMMODATION
+  TIME
+  SAFETY
+  PACKING_LIST
+  EMERGENCY
+  EXTRAS
+  SETTINGS
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ Blog Page Settings (إعدادات صفحة المدونة)
+// ═══════════════════════════════════════════════════════════════
+
+model BlogSetting {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroTitleAr    String  @default("مدونة سقطرى")
+  heroTitleEn    String  @default("Socotra Blog")
+  heroSubtitleAr String? @default("اكتشف قصص المسافرين، دلائل السفر، والمعلومات الثقافية والطبيعية") @db.Text
+  heroSubtitleEn String? @default("Discover traveler stories, travel guides, and cultural & natural insights") @db.Text
+  heroImage      String?
+
+  // Stats (JSON Array: { number, labelAr, labelEn, icon })
+  stats Json @default("[]")
+
+  // Newsletter
+  newsletterTitleAr String @default("اشترك في نشرتنا البريدية")
+  newsletterTitleEn String @default("Subscribe to Our Newsletter")
+  newsletterTextAr  String @default("احصل على آخر المقالات، نصائح السفر، والعروض الحصرية مباشرة في بريدك الإلكتروني") @db.Text
+  newsletterTextEn  String @default("Get latest articles, travel tips, and exclusive offers directly in your inbox") @db.Text
+
+  // Write For Us
+  writeTitleAr String @default("هل لديك قصة تريد مشاركتها؟")
+  writeTitleEn String @default("Have a Story to Share?")
+  writeTextAr  String @default("نحن نبحث دائماً عن قصص وتجارب جديدة من مسافرين زاروا سقطرى. شارك تجربتك مع مجتمعنا!") @db.Text
+  writeTextEn  String @default("We're always looking for new stories and experiences from travelers who visited Socotra. Share your experience with our community!") @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_settings")
+}
+
+// ???????????????????????????????????????????????????????????????
+// ?? About Page Settings (������� ���� �� ���)
+// ???????????????????????????????????????????????????????????????
+
+model AboutPageSettings {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroTitle         String  @default("The Jewel of Arabia")
+  heroTitleAr       String  @default("����� �����")
+  heroSubtitle      String? @db.Text @default("An isolated paradise where fantastical nature meets authentic culture")
+  heroSubtitleAr    String? @db.Text @default("��� ������ ��� ����� ������� �������� �������� �������")
+  heroImage         String  @default("/img/about/socotra-nature.jpg")
+  // Introduction Section
+  introTitle        String? @default("More Than Just an Island")
+  introTitleAr      String? @default("أكثر من مجرد جزيرة")
+  introContent      String? @db.Text
+  introContentAr    String? @db.Text
+  introImage        String? @default("/img/about/history-socotra.jpg")
+
+  // Statistics (JSON: { labelAr, labelEn, value })
+  stats             Json    @default("[]")
+
+  // SEO
+  metaTitle         String? @default("About Us - Hawari Tours")
+  metaTitleAr       String? @default("�� ��� - ����� ����")
+  metaDescription   String? @db.Text
+  metaDescriptionAr String? @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("about_page_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ Tours Page Settings (إعدادات صفحة الرحلات)
+// ═══════════════════════════════════════════════════════════════
+
+model ToursPageSetting {
+  id String @id @default(cuid())
+
+  // Hero Section
+  heroTitleEn    String  @default("Choose Your Perfect Tour")
+  heroTitleAr    String  @default("اختر رحلتك المثالية")
+  heroSubtitleEn String? @default("From exciting adventures to cultural trips, we have something for every traveler") @db.Text
+  heroSubtitleAr String? @default("من المغامرات المثيرة إلى الرحلات الثقافية، لدينا ما يناسب كل مسافر") @db.Text
+  heroImage      String  @default("/img/tours/hero-bg.jpg")
+
+  // Special Offers Section
+  specialOffers   Json    @default("[]") // Array of { titleAr, titleEn, discount, descriptionAr, descriptionEn, icon, gradient }
+  
+  // Categories Section
+  categoriesTitleEn    String  @default("Browse by Category")
+  categoriesTitleAr    String  @default("تصفح حسب الفئة")
+  categoriesSubtitleEn String? @default("Choose your preferred adventure type")
+  categoriesSubtitleAr String? @default("اختر نوع المغامرة المفضلة لديك")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("tours_page_settings")
+}
+
+model ReportCategory {
+  id       String @id @default(cuid())
+  slug     String @unique
+  nameEn   String
+  nameAr   String
+  icon     String @default("📄")
+  gradient String @default("from-gray-500 to-gray-700")
+  isActive Boolean @default(true)
+  order    Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports Report[]
+
+  @@index([order])
+  @@index([isActive])
+  @@map("report_categories")
+}
+
+model Report {
+  id          String @id @default(cuid())
+  categoryId  String
+  titleEn     String
+  titleAr     String
+  descriptionEn String @db.Text
+  descriptionAr String @db.Text
+  year        Int
+  pages       Int
+  languageEn  String
+  languageAr  String
+  fileSize    String
+  downloadUrl String
+  featured    Boolean @default(false)
+  topics      String[]
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category ReportCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([featured])
+  @@index([order])
+  @@index([isActive])
+  @@map("reports")
+}
+
+model ReportStat {
+  id       String @id @default(cuid())
+  number   String
+  labelEn  String
+  labelAr  String
+  icon     String
+  gradient String @default("from-blue-500 to-indigo-600")
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("report_stats")
+}
+
+model ReportsPageSetting {
+  id String @id @default(cuid())
+
+  heroBadgeEn String @default("Reports Library")
+  heroBadgeAr String @default("مكتبة التقارير")
+  heroTitleLine1En String @default("Socotra")
+  heroTitleLine1Ar String @default("تقارير")
+  heroTitleLine2En String @default("Reports")
+  heroTitleLine2Ar String @default("سقطرى")
+  heroSubtitleEn String? @db.Text
+  heroSubtitleAr String? @db.Text
+  primaryButtonLabelEn String @default("Browse Reports")
+  primaryButtonLabelAr String @default("تصفح التقارير")
+  primaryButtonLink String @default("#reports")
+  secondaryButtonLabelEn String @default("Statistics")
+  secondaryButtonLabelAr String @default("الإحصائيات")
+  secondaryButtonLink String @default("#statistics")
+  statsTitleEn String @default("Key")
+  statsTitleAr String @default("إحصائيات")
+  statsTitleHighlightEn String @default("Statistics")
+  statsTitleHighlightAr String @default("رئيسية")
+  featuredBadgeEn String @default("Featured Reports")
+  featuredBadgeAr String @default("تقارير مميزة")
+  featuredTitleEn String @default("Most Important Reports")
+  featuredTitleAr String @default("أهم التقارير")
+  allReportsTitleEn String @default("All")
+  allReportsTitleAr String @default("جميع")
+  allReportsTitleHighlightEn String @default("Reports")
+  allReportsTitleHighlightAr String @default("التقارير")
+  searchPlaceholderEn String @default("Search for a report...")
+  searchPlaceholderAr String @default("ابحث عن تقرير...")
+  noResultsTitleEn String @default("No Results Found")
+  noResultsTitleAr String @default("لا توجد نتائج")
+  noResultsTextEn String @default("Try searching with different keywords")
+  noResultsTextAr String @default("جرب البحث بكلمات مختلفة")
+  resetButtonLabelEn String @default("Reset")
+  resetButtonLabelAr String @default("إعادة تعيين")
+  downloadLabelEn String @default("Download")
+  downloadLabelAr String @default("تحميل")
+  reportsCountLabelEn String @default("reports available")
+  reportsCountLabelAr String @default("تقرير متاح")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("reports_page_settings")
+}
+
+model ReportsUnescoSection {
+  id String @id @default(cuid())
+
+  badgeEn String @default("UNESCO World Heritage Site")
+  badgeAr String @default("موقع تراث عالمي")
+  titleLine1En String @default("Socotra - World")
+  titleLine1Ar String @default("سقطرى - تراث")
+  titleLine2En String @default("Heritage")
+  titleLine2Ar String @default("عالمي")
+  descriptionEn String? @db.Text
+  descriptionAr String? @db.Text
+  bulletsEn String[] @default([])
+  bulletsAr String[] @default([])
+  buttonLabelEn String @default("Official UNESCO Page")
+  buttonLabelAr String @default("موقع اليونسكو الرسمي")
+  buttonLink String @default("https://whc.unesco.org/en/list/1263")
+  imageUrl String?
+  isActive Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("reports_unesco_section")
+}
+
+model ReportsCtaSection {
+  id String @id @default(cuid())
+
+  titleEn String @default("Have a Question?")
+  titleAr String @default("هل لديك سؤال؟")
+  subtitleEn String? @db.Text
+  subtitleAr String? @db.Text
+  primaryButtonLabelEn String @default("Contact Us")
+  primaryButtonLabelAr String @default("تواصل معنا")
+  primaryButtonLink String @default("/contact")
+  secondaryButtonLabelEn String @default("More About Socotra")
+  secondaryButtonLabelAr String @default("المزيد عن سقطرى")
+  secondaryButtonLink String @default("/about")
+  isActive Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("reports_cta_section")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🚗 Cars Management
+// ═══════════════════════════════════════════════════════════════
+
+model Car {
+  id             String      @id @default(cuid())
+  name           String
+  nameAr         String
+  slug           String      @unique
+  description    String      @db.Text
+  descriptionAr  String      @db.Text
+  brand          String?
+  type           String      // e.g. SUV, 4x4, Sedan, VIP Transport
+  year           Int?
+  pricePerDay    Float
+  discount       Float?      @default(0)
+  seats          Int         @default(4)
+  doors          Int         @default(4)
+  transmission   String      @default("Automatic") // Automatic or Manual
+  fuelType       String?     // Petrol, Diesel, Hybrid, Electric
+  rating         Float       @default(0)
+  reviewsCount   Int         @default(0)
+  status         HotelStatus @default(ACTIVE)  // Reusing HotelStatus enum (ACTIVE, DRAFT, SUSPENDED)
+  featured       Boolean     @default(false)
+
+  coverImage     String
+  images         String[]
+  videoUrl       String?
+
+  features       String[]
+  featuresAr     String[]
+
+  metaTitle      String?
+  metaDescription String?
+  keywords       String[]
+
+  // Professional Rental Specific
+  insurance      String?     @default("Basic") // Basic, Comprehensive, Premium
+  insuranceAr    String?     @default("تأمين أساسي")
+  mileage        String?     @default("Unlimited") // Unlimited, 200km/day
+  mileageAr      String?     @default("غير محدود")
+  color          String?
+  colorAr        String?
+  minAge         Int         @default(21)
+  deposit        Float       @default(0) // Security deposit
+  luggage        Int         @default(2) // Number of bags
+
+  viewsCount     Int @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  bookings       Booking[]
+
+  @@index([slug])
+  @@index([featured])
+  @@index([status])
+  @@index([pricePerDay])
+  @@index([rating])
+  @@map("cars")
+}
+
+model CarsPageSetting {
+  id String @id @default(cuid())
+
+  heroImage        String @default("/img/cars/hero.jpg")
+  heroBadgeAr      String @default("تأجير سيارات فاخرة في سقطرى")
+  heroBadgeEn      String @default("Luxury Car Rental in Socotra")
+  heroTitleAr      String @default("رحلتك المثالية تبدأ بسيارة مثالية")
+  heroTitleEn      String @default("Your Perfect Journey Starts With A Perfect Car")
+  heroSubtitleAr   String @default("اختر من بين تشكيلة واسعة من سيارات الدفع الرباعي والسيارات الفاخرة لتنطلق بثقة") @db.Text
+  heroSubtitleEn   String @default("Choose from a wide range of 4x4s and luxury vehicles to explore with confidence") @db.Text
+  primaryButtonAr  String @default("استعرض الأسطول")
+  primaryButtonEn  String @default("Browse Fleet")
+  primaryButtonLink String @default("#fleet")
+
+  stats Json @default("[{\"value\":\"15+\",\"labelAr\":\"مركبة دفع رباعي\",\"labelEn\":\"4x4 Vehicles\"},{\"value\":\"4.9\",\"labelAr\":\"تقييم العملاء\",\"labelEn\":\"Customer Rating\"},{\"value\":\"24/7\",\"labelAr\":\"دعم فني للطرق\",\"labelEn\":\"Road Assistance\"}]")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("cars_page_settings")
+}

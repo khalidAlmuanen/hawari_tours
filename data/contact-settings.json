@@ -1,0 +1,85 @@
+{
+  "company": {
+    "nameEn": "Hawarl Tours",
+    "nameAr": "رحلات حواري",
+    "descriptionEn": "Discover the wonders of Yemen",
+    "descriptionAr": "اكتشف عجائب اليمن",
+    "heroTitleEn": "Get in Touch",
+    "heroTitleAr": "تواصل معنا",
+    "heroSubtitleEn": "We're available to answer your questions and help plan your perfect trip",
+    "heroSubtitleAr": "نحن متواجدون للإجابة على استفساراتك ومساعدتك في التخطيط لرحلتك المثالية",
+    "logo": ""
+  },
+  "contact": {
+    "emails": {
+      "info": "info@hawarl.com",
+      "support": "support@hawarl.com",
+      "booking": "booking@hawarl.com"
+    },
+    "phones": {
+      "primary": "+967 1 234 567",
+      "secondary": "+967 7 890 123",
+      "whatsapp": "+967 777 123 456"
+    },
+    "addresses": [
+      {
+        "id": "1",
+        "titleEn": "Main Office",
+        "titleAr": "المكتب الرئيسي",
+        "addressEn": "Jeddah, Yemen",
+        "addressAr": "جده، اليمن",
+        "lat": "15.3694",
+        "lng": "44.1910",
+        "mapUrl": ""
+      }
+    ]
+  },
+  "workingHours": {
+    "weekdays": {
+      "openEn": "9:00 AM - 6:00 PM",
+      "openAr": "9:00 ص - 6:00 م",
+      "daysEn": "Sunday - Thursday",
+      "daysAr": "الأحد - الخميس"
+    },
+    "weekend": {
+      "openEn": "10:00 AM - 2:00 PM",
+      "openAr": "10:00 ص - 2:00 م",
+      "daysEn": "Saturday",
+      "daysAr": "السبت"
+    },
+    "closedEn": "Friday",
+    "closedAr": "الجمعة"
+  },
+  "socialMedia": {
+    "facebook": {
+      "url": "",
+      "followers": 0,
+      "active": true
+    },
+    "instagram": {
+      "url": "",
+      "followers": 0,
+      "active": true
+    },
+    "twitter": {
+      "url": "",
+      "followers": 0,
+      "active": true
+    },
+    "youtube": {
+      "url": "",
+      "followers": 0,
+      "active": true
+    },
+    "tiktok": {
+      "url": "",
+      "followers": 0,
+      "active": true
+    },
+    "linkedin": {
+      "url": "",
+      "followers": 0,
+      "active": false
+    }
+  }
+}
