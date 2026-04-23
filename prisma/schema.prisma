@@ -10,10 +10,17 @@ generator client {
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 🔌 Database connection
+// Uses Vercel ↔ Supabase integration variables:
+//   - POSTGRES_PRISMA_URL      → pooled (PgBouncer) connection
+//   - POSTGRES_URL_NON_POOLING → direct connection (migrations)
+// These are auto-provisioned by the Supabase integration on Vercel.
+// ═══════════════════════════════════════════════════════════════
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2014,7 +2021,7 @@ model ReportsCtaSection {
 
 // ═══════════════════════════════════════════════════════════════
 // 🚗 Cars Management
-// ═══════════════════════════════════════════════════════════════
+// ═════════════════════════════════════��═════════════════════════
 
 model Car {
   id             String      @id @default(cuid())
