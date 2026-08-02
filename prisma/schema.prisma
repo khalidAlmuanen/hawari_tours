@@ -1,0 +1,1686 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model ContactSetting {
+  id        String   @id @default(cuid())
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_settings")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          UserRole  @default(USER)
+  phone         String?
+  avatar        String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  messages      Message[]
+  reviews       Review[]
+
+  @@map("users")
+}
+
+model Tour {
+  id              String       @id @default(cuid())
+  title           String
+  titleAr         String
+  slug            String       @unique
+  description     String
+  descriptionAr   String
+  price           Float
+  discount        Float?       @default(0)
+  duration        Int
+  maxPeople       Int
+  difficulty      Difficulty   @default(MODERATE)
+  category        TourCategory
+  featured        Boolean      @default(false)
+  isActive        Boolean      @default(true)
+  coverImage      String
+  images          String[]
+  videoUrl        String?
+  location        String
+  locationAr      String
+  latitude        Float?
+  longitude       Float?
+  itinerary       Json?
+  includes        String[]
+  excludes        String[]
+  rating          Float        @default(0)
+  reviewsCount    Int          @default(0)
+  bookingsCount   Int          @default(0)
+  viewsCount      Int          @default(0)
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  cardImage       String?
+  features        String[]
+  featuresAr      String[]
+  bookings        Booking[]
+  reviews         Review[]
+  tourDates       TourDate[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+  @@index([bookingsCount])
+  @@index([price])
+  @@index([rating])
+  @@map("tours")
+}
+
+model Hotel {
+  id                   String          @id @default(cuid())
+  name                 String
+  nameAr               String
+  slug                 String          @unique
+  description          String
+  descriptionAr        String
+  shortDescription     String?
+  shortDescriptionAr   String?
+  pricePerNight        Float
+  discount             Float?          @default(0)
+  rating               Float           @default(0)
+  reviewsCount         Int             @default(0)
+  roomsCount           Int             @default(0)
+  status               HotelStatusEnum @default(ACTIVE)
+  featured             Boolean         @default(false)
+  coverImage           String
+  images               String[]
+  videoUrl             String?
+  location             String
+  locationAr           String
+  latitude             Float?
+  longitude            Float?
+  amenities            String[]
+  amenitiesAr          String[]
+  highlights           String[]
+  highlightsAr         String[]
+  checkInTime          String?
+  checkOutTime         String?
+  cancellationPolicy   String?
+  cancellationPolicyAr String?
+  metaTitle            String?
+  metaDescription      String?
+  keywords             String[]
+  viewsCount           Int             @default(0)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  bookings             Booking[]
+
+  @@index([slug])
+  @@index([featured])
+  @@index([status])
+  @@index([pricePerNight])
+  @@index([rating])
+  @@map("hotels")
+}
+
+model HotelsPageSetting {
+  id                     String   @id @default(cuid())
+  heroImage              String   @default("/img/hero/socotra-3.jpg")
+  heroBadgeAr            String   @default("حجز فنادق فاخرة في سقطرى")
+  heroBadgeEn            String   @default("Luxury Hotel Booking in Socotra")
+  heroTitleAr            String   @default("تجربة إقامة مبهرة بتفاصيل ملكية")
+  heroTitleEn            String   @default("A Royal Stay Crafted with Luxury")
+  heroSubtitleAr         String   @default("اختر غرفتك المثالية مع عروض حصرية، خدمات خاصة، وتجارب مصممة بعناية لكل رحلة.")
+  heroSubtitleEn         String   @default("Choose your perfect suite with exclusive offers, private services, and curated experiences.")
+  primaryButtonAr        String   @default("احجز الآن")
+  primaryButtonEn        String   @default("Book Now")
+  primaryButtonLink      String   @default("/contact")
+  secondaryButtonAr      String   @default("استكشف الجولات")
+  secondaryButtonEn      String   @default("Explore Tours")
+  secondaryButtonLink    String   @default("/tours")
+  stats                  Json     @default("[{\"value\": \"28+\", \"labelAr\": \"فنادق فاخرة\", \"labelEn\": \"Luxury Hotels\"}, {\"value\": \"4.8\", \"labelAr\": \"متوسط التقييم\", \"labelEn\": \"Avg Rating\"}, {\"value\": \"24/7\", \"labelAr\": \"خدمة VIP\", \"labelEn\": \"VIP Service\"}]")
+  searchTitleAr          String   @default("بحث ذكي عن الفندق")
+  searchTitleEn          String   @default("Smart Hotel Search")
+  searchButtonAr         String   @default("عرض الخيارات الفاخرة")
+  searchButtonEn         String   @default("Show Luxury Options")
+  searchHintLeftAr       String   @default("حجز فوري مضمون")
+  searchHintLeftEn       String   @default("Instant booking guaranteed")
+  searchHintRightAr      String   @default("دعم 24/7")
+  searchHintRightEn      String   @default("24/7 Support")
+  filtersTitleAr         String   @default("فلترة فاخرة")
+  filtersTitleEn         String   @default("Luxury Filters")
+  experiences            Json     @default("[{\"icon\": \"✨\", \"descAr\": \"تنسيق حجوزاتك وتنقلاتك بلمسة شخصية\", \"descEn\": \"Personalized concierge for every detail\", \"titleAr\": \"خدمة مضيف خاص 24/7\", \"titleEn\": \"Private host 24/7\"}, {\"icon\": \"🍽️\", \"descAr\": \"قوائم مصممة خصيصا بإطلالة ساحرة\", \"descEn\": \"Custom menus with cinematic views\", \"titleAr\": \"جلسات عشاء على الشاطئ\", \"titleEn\": \"Beachfront dining\"}, {\"icon\": \"🫧\", \"descAr\": \"جلسات استرخاء بمواد طبيعية محلية\", \"descEn\": \"Signature treatments with local essences\", \"titleAr\": \"تجارب سبا صحية\", \"titleEn\": \"Wellness spa rituals\"}]")
+  vipTitleAr             String   @default("خدمة حجز VIP عبر فريقنا")
+  vipTitleEn             String   @default("VIP Booking Concierge")
+  vipDescriptionAr       String   @default("نوفر لك تفاوض على أفضل الأسعار، ترقية الغرف، وتجهيزات استثنائية لرحلتك القادمة.")
+  vipDescriptionEn       String   @default("We secure exclusive rates, room upgrades, and bespoke arrangements for your next escape.")
+  vipPrimaryButtonAr     String   @default("تواصل مع المستشار")
+  vipPrimaryButtonEn     String   @default("Talk to Concierge")
+  vipPrimaryButtonLink   String   @default("/contact")
+  vipSecondaryButtonAr   String   @default("أضف جولة فاخرة")
+  vipSecondaryButtonEn   String   @default("Add a luxury tour")
+  vipSecondaryButtonLink String   @default("/tours")
+  updatedAt              DateTime @updatedAt
+
+  @@map("hotels_page_settings")
+}
+
+model TourDate {
+  id             String   @id @default(cuid())
+  tourId         String
+  startDate      DateTime
+  endDate        DateTime
+  availableSpots Int
+  price          Float
+  isActive       Boolean  @default(true)
+  tour           Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@index([tourId])
+  @@index([startDate])
+  @@map("tour_dates")
+}
+
+model Booking {
+  id              String         @id @default(cuid())
+  bookingNumber   String         @unique
+  userId          String
+  tourId          String?
+  startDate       DateTime
+  endDate         DateTime
+  numberOfPeople  Int
+  totalPrice      Float
+  paidAmount      Float          @default(0)
+  status          BookingStatus  @default(PENDING)
+  paymentStatus   PaymentStatus  @default(PENDING)
+  paymentMethod   PaymentMethod?
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  specialRequests String?
+  notes           String?
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  bookingType     BookingType    @default(TOUR)
+  carId           String?
+  hotelId         String?
+  numberOfRooms   Int?           @default(1)
+  car             Car?           @relation(fields: [carId], references: [id])
+  hotel           Hotel?         @relation(fields: [hotelId], references: [id])
+  tour            Tour?          @relation(fields: [tourId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  payments        Payment[]
+
+  @@index([userId])
+  @@index([tourId])
+  @@index([hotelId])
+  @@index([carId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([bookingNumber])
+  @@index([createdAt])
+  @@index([totalPrice])
+  @@index([customerEmail])
+  @@map("bookings")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  bookingId     String
+  amount        Float
+  method        PaymentMethod
+  status        String
+  transactionId String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@map("payments")
+}
+
+model Destination {
+  id              String              @id @default(cuid())
+  name            String
+  nameAr          String
+  slug            String              @unique
+  description     String
+  descriptionAr   String
+  image           String?
+  coverImage      String?
+  gallery         String[]
+  latitude        Float?
+  longitude       Float?
+  region          String?
+  viewsCount      Int                 @default(0)
+  toursCount      Int                 @default(0)
+  featured        Boolean             @default(false)
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  activities      String[]            @default([])
+  bestTimeToVisit String?
+  category        DestinationCategory @default(NATURE)
+  highlights      String[]            @default([])
+  images          String[]
+  unesco          Boolean             @default(false)
+
+  @@index([slug])
+  @@index([category])
+  @@index([featured])
+  @@map("destinations")
+}
+
+model News {
+  id              String       @id @default(cuid())
+  title           String
+  titleAr         String
+  slug            String       @unique
+  excerpt         String
+  excerptAr       String
+  content         String
+  contentAr       String
+  coverImage      String
+  images          String[]
+  category        NewsCategory
+  tags            String[]
+  featured        Boolean      @default(false)
+  breaking        Boolean      @default(false)
+  trending        Boolean      @default(false)
+  published       Boolean      @default(false)
+  publishedAt     DateTime?
+  viewsCount      Int          @default(0)
+  metaTitle       String?
+  metaDescription String?
+  authorId        String?
+  authorName      String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+  @@map("news")
+}
+
+model GalleryImage {
+  id            String          @id @default(cuid())
+  title         String?
+  titleAr       String?
+  description   String?
+  descriptionAr String?
+  url           String
+  thumbnail     String?
+  category      GalleryCategory
+  tags          String[]
+  width         Int?
+  height        Int?
+  size          Int?
+  format        String?
+  featured      Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([category])
+  @@map("gallery_images")
+}
+
+model Testimonial {
+  id             String   @id @default(cuid())
+  customerName   String
+  customerNameAr String?
+  customerEmail  String?
+  customerImage  String?
+  content        String
+  contentAr      String?
+  rating         Int
+  tourName       String?
+  tourNameAr     String?
+  featured       Boolean  @default(false)
+  verified       Boolean  @default(false)
+  published      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  country        String
+  countryAr      String?
+  countryCode    String
+  customerPhone  String?
+  date           DateTime @default(now())
+  hasVideo       Boolean  @default(false)
+  videoUrl       String?
+
+  @@index([published])
+  @@index([featured])
+  @@index([country])
+  @@map("testimonials")
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  userId       String
+  tourId       String
+  rating       Int
+  title        String?
+  comment      String
+  helpfulCount Int      @default(0)
+  approved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tour         Tour     @relation(fields: [tourId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([tourId])
+  @@index([approved])
+  @@map("reviews")
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  userId    String?
+  status    MessageStatus @default(UNREAD)
+  repliedAt DateTime?
+  reply     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User?         @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([email])
+  @@map("messages")
+}
+
+model Analytics {
+  id             String   @id @default(cuid())
+  date           DateTime @unique @db.Date
+  pageViews      Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  bounceRate     Float?
+  avgSessionTime Int?
+  bookings       Int      @default(0)
+  revenue        Float    @default(0)
+  directTraffic  Int      @default(0)
+  organicSearch  Int      @default(0)
+  socialMedia    Int      @default(0)
+  referral       Int      @default(0)
+  desktop        Int      @default(0)
+  mobile         Int      @default(0)
+  tablet         Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([date])
+  @@map("analytics")
+}
+
+model GalleryVideo {
+  id            String          @id @default(cuid())
+  title         String
+  titleAr       String
+  description   String?
+  descriptionAr String?
+  videoUrl      String
+  thumbnail     String?
+  duration      String?
+  category      GalleryCategory
+  featured      Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  viewCount     Int             @default(0)
+  order         Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([category])
+  @@index([featured])
+  @@index([order])
+  @@map("gallery_videos")
+}
+
+model VirtualTour {
+  id            String   @id @default(cuid())
+  title         String
+  titleAr       String
+  description   String?
+  descriptionAr String?
+  location      String
+  locationAr    String
+  tourUrl       String
+  icon          String   @default("🌐")
+  gradient      String   @default("from-blue-500 to-cyan-600")
+  featured      Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  viewCount     Int      @default(0)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([featured])
+  @@index([order])
+  @@map("virtual_tours")
+}
+
+model InstagramPost {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  postUrl   String?
+  likes     Int      @default(0)
+  comments  Int      @default(0)
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("instagram_posts")
+}
+
+model GallerySetting {
+  id                     String   @id @default(cuid())
+  heroTitle              String   @default("Explore Socotra")
+  heroTitleAr            String   @default("استكشف سقطرى")
+  heroSubtitle           String?
+  heroSubtitleAr         String?
+  heroImage              String?
+  heroDescription        String?
+  heroDescriptionAr      String?
+  instagramUsername      String   @default("@HawariTours")
+  instagramUrl           String   @default("https://instagram.com/hawaritours")
+  instagramTitle         String   @default("Follow us on Instagram")
+  instagramTitleAr       String   @default("تابعنا على إنستغرام")
+  instagramDescription   String?
+  instagramDescriptionAr String?
+  downloadTitle          String   @default("Want High-Resolution Copy?")
+  downloadTitleAr        String   @default("هل تريد نسخة عالية الجودة؟")
+  downloadDescription    String?
+  downloadDescriptionAr  String?
+  downloadEnabled        Boolean  @default(true)
+  ctaTitle               String   @default("Liked the Photos? Visit Socotra Yourself!")
+  ctaTitleAr             String   @default("هل أعجبتك الصور؟ زر سقطرى بنفسك!")
+  ctaDescription         String?
+  ctaDescriptionAr       String?
+  ctaButtonText          String   @default("Browse Tours")
+  ctaButtonTextAr        String   @default("تصفح الرحلات")
+  statsEnabled           Boolean  @default(true)
+  virtualToursCount      String   @default("10+")
+  highQualityLabel       String   @default("4K")
+  updatedAt              DateTime @updatedAt
+
+  @@map("gallery_settings")
+}
+
+model QuickTip {
+  id            String   @id @default(cuid())
+  icon          String
+  title         String
+  titleAr       String
+  description   String
+  descriptionAr String
+  gradient      String
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("quick_tips")
+}
+
+model VisaRequirement {
+  id        String   @id @default(cuid())
+  itemAr    String
+  itemEn    String
+  icon      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("visa_requirements")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  bookingId String?
+  reviewId  String?
+  messageId String?
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model FlightRoute {
+  id          String   @id @default(cuid())
+  fromAr      String
+  fromEn      String
+  airline     String
+  duration    String
+  frequencyAr String
+  frequencyEn String
+  price       String
+  icon        String
+  gradient    String
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([order])
+  @@map("flight_routes")
+}
+
+model LocalTransport {
+  id            String   @id @default(cuid())
+  typeAr        String
+  typeEn        String
+  descriptionAr String?
+  descriptionEn String?
+  priceAr       String
+  priceEn       String
+  icon          String
+  gradient      String
+  features      String[]
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("local_transport")
+}
+
+model AccommodationType {
+  id            String   @id @default(cuid())
+  typeAr        String
+  typeEn        String
+  descriptionAr String?
+  descriptionEn String?
+  priceAr       String
+  priceEn       String
+  icon          String
+  rating        Int      @default(3)
+  gradient      String
+  features      String[]
+  examples      String[]
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("accommodation_types")
+}
+
+model SafetyCategory {
+  id         String      @id @default(cuid())
+  categoryAr String
+  categoryEn String
+  icon       String
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  tips       SafetyTip[]
+
+  @@index([order])
+  @@map("safety_categories")
+}
+
+model SafetyTip {
+  id          String         @id @default(cuid())
+  categoryId  String
+  tipAr       String
+  tipEn       String
+  isImportant Boolean        @default(false)
+  order       Int            @default(0)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  category    SafetyCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([order])
+  @@map("safety_tips")
+}
+
+model TimelineEvent {
+  id            String   @id @default(cuid())
+  year          String
+  yearEn        String?
+  era           String
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  icon          String
+  color         String
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([era])
+  @@index([order])
+  @@map("timeline_events")
+}
+
+model ArchaeologicalSite {
+  id             String   @id @default(cuid())
+  nameEn         String
+  nameAr         String
+  periodEn       String   @default("Ancient Period")
+  periodAr       String   @default("فترة قديمة")
+  descriptionEn  String
+  descriptionAr  String
+  significanceEn String?
+  significanceAr String?
+  locationEn     String?
+  locationAr     String?
+  accessEn       String?
+  accessAr       String?
+  gradient       String   @default("from-amber-500 to-orange-600")
+  imageUrl       String?
+  featured       Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([featured])
+  @@index([order])
+  @@map("archaeological_sites")
+}
+
+model HistoricalSection {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  titleEn   String
+  titleAr   String
+  contentEn String
+  contentAr String
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@map("historical_sections")
+}
+
+model HistoryPageSetting {
+  id             String   @id @default(cuid())
+  heroTitleEn    String   @default("History of Socotra")
+  heroTitleAr    String   @default("تاريخ سقطرى")
+  heroSubtitleEn String?
+  heroSubtitleAr String?
+  heroImage      String?
+  ctaTitleEn     String   @default("Discover Socotra History Yourself")
+  ctaTitleAr     String   @default("اكتشف تاريخ سقطرى بنفسك")
+  ctaTextEn      String?
+  ctaTextAr      String?
+  ctaImage       String?
+  metaTitleEn    String?
+  metaTitleAr    String?
+  metaDescEn     String?
+  metaDescAr     String?
+  extraContent   Json?    @default("{}")
+  updatedAt      DateTime @updatedAt
+
+  @@map("history_page_settings")
+}
+
+model EmergencyContact {
+  id        String   @id @default(cuid())
+  nameAr    String
+  nameEn    String
+  number    String
+  icon      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("emergency_contacts")
+}
+
+model PackingCategory {
+  id         String   @id @default(cuid())
+  categoryAr String
+  categoryEn String
+  icon       String
+  items      String[]
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([order])
+  @@map("packing_categories")
+}
+
+model TravelGuideSetting {
+  id                   String   @id @default(cuid())
+  heroTitleAr          String   @default("دليل السفر")
+  heroTitleEn          String   @default("Travel Guide")
+  heroSubtitleAr       String?
+  heroSubtitleEn       String?
+  visaTitleAr          String   @default("التأشيرات ومتطلبات الدخول")
+  visaTitleEn          String   @default("Visa & Entry Requirements")
+  transportTitleAr     String   @default("النقل والمواصلات")
+  transportTitleEn     String   @default("Transportation")
+  accommodationTitleAr String   @default("خيارات الإقامة")
+  accommodationTitleEn String   @default("Accommodation Options")
+  bestTimeTitleAr      String   @default("أفضل وقت للزيارة")
+  bestTimeTitleEn      String   @default("Best Time to Visit")
+  peakSeasonAr         String   @default("أكتوبر - مارس")
+  peakSeasonEn         String   @default("October - March")
+  offSeasonAr          String   @default("يونيو - سبتمبر")
+  offSeasonEn          String   @default("June - September")
+  safetyTitleAr        String   @default("نصائح السلامة")
+  safetyTitleEn        String   @default("Safety Tips")
+  ctaTitleAr           String   @default("جاهز لرحلتك إلى سقطرى؟")
+  ctaTitleEn           String   @default("Ready for Your Socotra Adventure?")
+  ctaDescriptionAr     String?
+  ctaDescriptionEn     String?
+  updatedAt            DateTime @updatedAt
+
+  @@map("travel_guide_settings")
+}
+
+model DestinationsPageSetting {
+  id             String   @id @default(cuid())
+  heroImage      String   @default("/img/destinations/socotra-hero.jpg")
+  heroTitleEn    String   @default("Tourist Destinations")
+  heroTitleAr    String   @default("المعالم السياحية")
+  heroSubtitleEn String?  @default("Explore over 50 unique tourist destinations in Socotra Island")
+  heroSubtitleAr String?  @default("استكشف أكثر من 50 معلماً سياحياً فريداً في جزيرة سقطرى")
+  updatedAt      DateTime @updatedAt
+
+  @@map("destinations_page_settings")
+}
+
+model AboutSection {
+  id        String           @id @default(cuid())
+  type      AboutSectionType
+  titleEn   String
+  titleAr   String
+  contentEn String
+  contentAr String
+  imageUrl  String?
+  order     Int              @default(0)
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([type])
+  @@index([order])
+  @@map("about_sections")
+}
+
+model EndemicSpecies {
+  id                 String          @id @default(cuid())
+  nameEn             String
+  nameAr             String
+  scientificName     String
+  descriptionEn      String
+  descriptionAr      String
+  imageUrl           String
+  category           SpeciesCategory
+  conservationStatus String          @default("Not Evaluated")
+  facts              String[]
+  order              Int             @default(0)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([category])
+  @@index([order])
+  @@map("endemic_species")
+}
+
+model CulturalElement {
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  imageUrl      String?
+  icon          String?
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("cultural_elements")
+}
+
+model Blog {
+  id              String          @id @default(cuid())
+  titleEn         String
+  titleAr         String
+  slug            String          @unique
+  excerptEn       String
+  excerptAr       String
+  contentEn       String
+  contentAr       String
+  coverImage      String?
+  category        BlogCategory
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+  published       Boolean         @default(false)
+  featured        Boolean         @default(false)
+  publishedAt     DateTime?
+  viewsCount      Int             @default(0)
+  commentsCount   Int             @default(0)
+  authorId        String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  BlogToBlogTag   BlogToBlogTag[]
+  author          BlogAuthor?     @relation(fields: [authorId], references: [id])
+  comments        Comment[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+  @@index([featured])
+  @@map("blogs")
+}
+
+model BlogAuthor {
+  id        String   @id @default(cuid())
+  nameAr    String
+  nameEn    String
+  titleAr   String?
+  titleEn   String?
+  bioAr     String?
+  bioEn     String?
+  avatar    String?
+  socials   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blogs     Blog[]
+
+  @@map("blog_authors")
+}
+
+model BlogTag {
+  id            String          @id @default(cuid())
+  nameAr        String
+  nameEn        String
+  slug          String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  BlogToBlogTag BlogToBlogTag[]
+
+  @@map("blog_tags")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  email     String
+  website   String?
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  blogId    String
+  name      String
+  updatedAt DateTime @updatedAt
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId])
+  @@index([approved])
+  @@map("comments")
+}
+
+model FAQ {
+  id         String      @id @default(cuid())
+  questionEn String
+  questionAr String
+  answerEn   String
+  answerAr   String
+  category   FAQCategory
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([category])
+  @@index([order])
+  @@map("faqs")
+}
+
+model ContactInfo {
+  id        String   @id @default(cuid())
+  email     String
+  phone     String
+  whatsapp  String?
+  address   String?
+  addressAr String?
+  hoursEn   String?
+  hoursAr   String?
+  facebook  String?
+  instagram String?
+  twitter   String?
+  youtube   String?
+  linkedin  String?
+  latitude  Float?
+  longitude Float?
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_info")
+}
+
+model HistoricalEra {
+  id            String            @id @default(cuid())
+  nameEn        String
+  nameAr        String
+  period        String
+  periodAr      String
+  descriptionEn String
+  descriptionAr String
+  color         String            @default("#3B82F6")
+  order         Int               @default(0)
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  events        HistoricalEvent[]
+
+  @@index([order])
+  @@map("historical_eras")
+}
+
+model HistoricalEvent {
+  id            String        @id @default(cuid())
+  eraId         String
+  year          String
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  icon          String?
+  order         Int           @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  era           HistoricalEra @relation(fields: [eraId], references: [id], onDelete: Cascade)
+
+  @@index([eraId])
+  @@index([order])
+  @@map("historical_events")
+}
+
+model UniqueFeaturesPageSetting {
+  id                 String   @id @default(cuid())
+  heroTitleEn        String   @default("Unique Features")
+  heroTitleAr        String   @default("ميزات فريدة")
+  heroSubtitleEn     String?  @default("Found nowhere else on Earth")
+  heroSubtitleAr     String?  @default("لن تجدها في أي مكان آخر على الأرض")
+  heroImage          String?
+  beachesTitleEn     String?  @default("Turquoise Shores")
+  beachesTitleAr     String?  @default("شواطئ فيروزية")
+  beachesSubtitleEn  String?  @default("Where the ocean meets the sky in a scene found nowhere else.")
+  beachesSubtitleAr  String?  @default("حيث يلتقي المحيط بالسماء في مشهد لا يتكرر.")
+  cavesTitleEn       String?  @default("Hidden Depths")
+  cavesTitleAr       String?  @default("أسرار الكهوف")
+  cavesSubtitleEn    String?  @default("Socotra features a vast network of massive limestone caves stretching for kilometers underground.")
+  cavesSubtitleAr    String?  @default("تتميز سقطرى بشبكة واسعة من الكهوف الجيرية الضخمة التي تمتد لكيلومترات تحت الأرض.")
+  cavesCtaEn         String?  @default("Book a Cave Tour")
+  cavesCtaAr         String?  @default("احجز جولة كهوف")
+  wildlifeTitleEn    String?  @default("Rare Wildlife")
+  wildlifeTitleAr    String?  @default("حياة برية نادرة")
+  wildlifeSubtitleEn String?  @default("Much of Socotra's reptiles and birds are found nowhere else.")
+  wildlifeSubtitleAr String?  @default("الكثير من زواحف وطيور سقطرى لا توجد في أي مكان آخر.")
+  metaTitleEn        String?
+  metaTitleAr        String?
+  metaDescEn         String?
+  metaDescAr         String?
+  updatedAt          DateTime @updatedAt
+
+  @@map("unique_features_page_settings")
+}
+
+model UniqueFeature {
+  id                   String      @id @default(cuid())
+  type                 FeatureType
+  nameEn               String
+  nameAr               String
+  descriptionEn        String
+  descriptionAr        String
+  images               String[]
+  facts                String[]
+  uses                 String[]
+  threats              String[]
+  activitiesEn         String?
+  activitiesAr         String?
+  bestTimeEn           String?
+  bestTimeAr           String?
+  depth                String?
+  difficultyEn         String?
+  difficultyAr         String?
+  scientificName       String?
+  categoryEn           String?
+  categoryAr           String?
+  sizeEn               String?
+  sizeAr               String?
+  statusEn             String?
+  statusAr             String?
+  rating               Float?      @default(5)
+  icon                 String?
+  conservationStatus   String?
+  conservationStatusAr String?
+  location             String?
+  locationAr           String?
+  latitude             Float?
+  longitude            Float?
+  featured             Boolean     @default(false)
+  order                Int         @default(0)
+  isActive             Boolean     @default(true)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([type])
+  @@index([featured])
+  @@index([order])
+  @@map("unique_features")
+}
+
+model HeroSlide {
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  subtitleEn    String?
+  subtitleAr    String?
+  descriptionEn String?
+  descriptionAr String?
+  imageUrl      String
+  buttonText    String?
+  buttonTextAr  String?
+  buttonLink    String?
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("hero_slides")
+}
+
+model QuickStat {
+  id        String   @id @default(cuid())
+  labelEn   String
+  labelAr   String
+  value     String
+  icon      String
+  color     String   @default("#3B82F6")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("quick_stats")
+}
+
+model WelcomeMessage {
+  id         String   @id @default(cuid())
+  titleEn    String
+  titleAr    String
+  subtitleEn String?
+  subtitleAr String?
+  contentEn  String
+  contentAr  String
+  imageUrl   String?
+  isActive   Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+
+  @@map("welcome_messages")
+}
+
+model WhyChooseUs {
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  icon          String
+  color         String   @default("#3B82F6")
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([order])
+  @@map("why_choose_us")
+}
+
+model Settings {
+  id                   String   @id @default(cuid())
+  updatedAt            DateTime @updatedAt
+  allowedIPs           String[]
+  bookingNotifications Boolean  @default(true)
+  cancellationDays     Int      @default(7)
+  contactAddress       String?
+  contactAddressAr     String?
+  contactEmail         String?
+  contactPhone         String?
+  currency             String   @default("USD")
+  emailEnabled         Boolean  @default(false)
+  emailHost            String?
+  emailNotifications   Boolean  @default(true)
+  emailPassword        String?
+  emailPort            Int?
+  emailSecure          Boolean  @default(true)
+  emailSender          String?
+  emailUser            String?
+  facebook             String?
+  instagram            String?
+  maintenanceMessage   String?
+  maintenanceMessageAr String?
+  maintenanceMode      Boolean  @default(false)
+  maximumBookingDays   Int      @default(30)
+  messageNotifications Boolean  @default(true)
+  minimumBookingDays   Int      @default(1)
+  pushNotifications    Boolean  @default(false)
+  reviewNotifications  Boolean  @default(true)
+  siteDescription      String?
+  siteDescriptionAr    String?
+  siteName             String   @default("Hawari Tours")
+  siteNameAr           String   @default("رحلات الحواري")
+  taxRate              Float    @default(0)
+  twitter              String?
+  whatsapp             String?
+  youtube              String?
+
+  @@map("settings")
+}
+
+model TravelPackage {
+  id         String   @id @default(cuid())
+  title      String
+  titleAr    String
+  price      Float
+  duration   String
+  durationAr String
+  features   String[]
+  featuresAr String[]
+  gradient   String   @default("from-gray-500 to-gray-700")
+  isPopular  Boolean  @default(false)
+  isFeatured Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("travel_packages")
+}
+
+model TravelGuideSection {
+  id        String                 @id @default(cuid())
+  type      TravelGuideSectionType @unique
+  titleEn   String?
+  titleAr   String?
+  content   Json                   @default("{}")
+  isActive  Boolean                @default(true)
+  updatedAt DateTime               @updatedAt
+
+  @@map("travel_guide_sections")
+}
+
+model BlogSetting {
+  id                String   @id @default(cuid())
+  heroTitleAr       String   @default("مدونة سقطرى")
+  heroTitleEn       String   @default("Socotra Blog")
+  heroSubtitleAr    String?  @default("اكتشف قصص المسافرين، دلائل السفر، والمعلومات الثقافية والطبيعية")
+  heroSubtitleEn    String?  @default("Discover traveler stories, travel guides, and cultural & natural insights")
+  heroImage         String?
+  stats             Json     @default("[]")
+  newsletterTitleAr String   @default("اشترك في نشرتنا البريدية")
+  newsletterTitleEn String   @default("Subscribe to Our Newsletter")
+  newsletterTextAr  String   @default("احصل على آخر المقالات، نصائح السفر، والعروض الحصرية مباشرة في بريدك الإلكتروني")
+  newsletterTextEn  String   @default("Get latest articles, travel tips, and exclusive offers directly in your inbox")
+  writeTitleAr      String   @default("هل لديك قصة تريد مشاركتها؟")
+  writeTitleEn      String   @default("Have a Story to Share?")
+  writeTextAr       String   @default("نحن نبحث دائماً عن قصص وتجارب جديدة من مسافرين زاروا سقطرى. شارك تجربتك مع مجتمعنا!")
+  writeTextEn       String   @default("We're always looking for new stories and experiences from travelers who visited Socotra. Share your experience with our community!")
+  updatedAt         DateTime @updatedAt
+
+  @@map("blog_settings")
+}
+
+model AboutPageSettings {
+  id                String   @id @default(cuid())
+  heroTitle         String   @default("The Jewel of Arabia")
+  heroTitleAr       String   @default("جنة معزولة")
+  heroSubtitle      String?  @default("An isolated paradise where fantastical nature meets authentic culture")
+  heroSubtitleAr    String?  @default("جنة معزولة حيث تلتقي الطبيعة الخيالية بالثقافة الأصيلة")
+  heroImage         String   @default("/img/about/socotra-nature.jpg")
+  introTitle        String?  @default("More Than Just an Island")
+  introTitleAr      String?  @default("أكثر من مجرد جزيرة")
+  introContent      String?
+  introContentAr    String?
+  introImage        String?  @default("/img/about/history-socotra.jpg")
+  stats             Json     @default("[]")
+  metaTitle         String?  @default("About Us - Hawari Tours")
+  metaTitleAr       String?  @default("من نحن - رحلات الحواري")
+  metaDescription   String?
+  metaDescriptionAr String?
+  updatedAt         DateTime @updatedAt
+
+  @@map("about_page_settings")
+}
+
+model ToursPageSetting {
+  id                   String   @id @default(cuid())
+  heroTitleEn          String   @default("Choose Your Perfect Tour")
+  heroTitleAr          String   @default("اختر رحلتك المثالية")
+  heroSubtitleEn       String?  @default("From exciting adventures to cultural trips, we have something for every traveler")
+  heroSubtitleAr       String?  @default("من المغامرات المثيرة إلى الرحلات الثقافية، لدينا ما يناسب كل مسافر")
+  heroImage            String   @default("/img/tours/hero-bg.jpg")
+  specialOffers        Json     @default("[]")
+  categoriesTitleEn    String   @default("Browse by Category")
+  categoriesTitleAr    String   @default("تصفح حسب الفئة")
+  categoriesSubtitleEn String?  @default("Choose your preferred adventure type")
+  categoriesSubtitleAr String?  @default("اختر نوع المغامرة المفضلة لديك")
+  updatedAt            DateTime @updatedAt
+
+  @@map("tours_page_settings")
+}
+
+model ReportCategory {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameEn    String
+  nameAr    String
+  icon      String   @default("📄")
+  gradient  String   @default("from-gray-500 to-gray-700")
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reports   Report[]
+
+  @@index([order])
+  @@index([isActive])
+  @@map("report_categories")
+}
+
+model Report {
+  id            String         @id @default(cuid())
+  categoryId    String
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  year          Int
+  pages         Int
+  languageEn    String
+  languageAr    String
+  fileSize      String
+  downloadUrl   String
+  featured      Boolean        @default(false)
+  topics        String[]
+  isActive      Boolean        @default(true)
+  order         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  category      ReportCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([featured])
+  @@index([order])
+  @@index([isActive])
+  @@map("reports")
+}
+
+model ReportStat {
+  id        String   @id @default(cuid())
+  number    String
+  labelEn   String
+  labelAr   String
+  icon      String
+  gradient  String   @default("from-blue-500 to-indigo-600")
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("report_stats")
+}
+
+model ReportsPageSetting {
+  id                         String   @id @default(cuid())
+  heroBadgeEn                String   @default("Reports Library")
+  heroBadgeAr                String   @default("مكتبة التقارير")
+  heroTitleLine1En           String   @default("Socotra")
+  heroTitleLine1Ar           String   @default("تقارير")
+  heroTitleLine2En           String   @default("Reports")
+  heroTitleLine2Ar           String   @default("سقطرى")
+  heroSubtitleEn             String?
+  heroSubtitleAr             String?
+  primaryButtonLabelEn       String   @default("Browse Reports")
+  primaryButtonLabelAr       String   @default("تصفح التقارير")
+  primaryButtonLink          String   @default("#reports")
+  secondaryButtonLabelEn     String   @default("Statistics")
+  secondaryButtonLabelAr     String   @default("الإحصائيات")
+  secondaryButtonLink        String   @default("#statistics")
+  statsTitleEn               String   @default("Key")
+  statsTitleAr               String   @default("إحصائيات")
+  statsTitleHighlightEn      String   @default("Statistics")
+  statsTitleHighlightAr      String   @default("رئيسية")
+  featuredBadgeEn            String   @default("Featured Reports")
+  featuredBadgeAr            String   @default("تقارير مميزة")
+  featuredTitleEn            String   @default("Most Important Reports")
+  featuredTitleAr            String   @default("أهم التقارير")
+  allReportsTitleEn          String   @default("All")
+  allReportsTitleAr          String   @default("جميع")
+  allReportsTitleHighlightEn String   @default("Reports")
+  allReportsTitleHighlightAr String   @default("التقارير")
+  searchPlaceholderEn        String   @default("Search for a report...")
+  searchPlaceholderAr        String   @default("ابحث عن تقرير...")
+  noResultsTitleEn           String   @default("No Results Found")
+  noResultsTitleAr           String   @default("لا توجد نتائج")
+  noResultsTextEn            String   @default("Try searching with different keywords")
+  noResultsTextAr            String   @default("جرب البحث بكلمات مختلفة")
+  resetButtonLabelEn         String   @default("Reset")
+  resetButtonLabelAr         String   @default("إعادة تعيين")
+  downloadLabelEn            String   @default("Download")
+  downloadLabelAr            String   @default("تحميل")
+  reportsCountLabelEn        String   @default("reports available")
+  reportsCountLabelAr        String   @default("تقرير متاح")
+  updatedAt                  DateTime @updatedAt
+
+  @@map("reports_page_settings")
+}
+
+model ReportsUnescoSection {
+  id            String   @id @default(cuid())
+  badgeEn       String   @default("UNESCO World Heritage Site")
+  badgeAr       String   @default("موقع تراث عالمي")
+  titleLine1En  String   @default("Socotra - World")
+  titleLine1Ar  String   @default("سقطرى - تراث")
+  titleLine2En  String   @default("Heritage")
+  titleLine2Ar  String   @default("عالمي")
+  descriptionEn String?
+  descriptionAr String?
+  bulletsEn     String[] @default([])
+  bulletsAr     String[] @default([])
+  buttonLabelEn String   @default("Official UNESCO Page")
+  buttonLabelAr String   @default("موقع اليونسكو الرسمي")
+  buttonLink    String   @default("https://whc.unesco.org/en/list/1263")
+  imageUrl      String?
+  isActive      Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+
+  @@map("reports_unesco_section")
+}
+
+model ReportsCtaSection {
+  id                     String   @id @default(cuid())
+  titleEn                String   @default("Have a Question?")
+  titleAr                String   @default("هل لديك سؤال؟")
+  subtitleEn             String?
+  subtitleAr             String?
+  primaryButtonLabelEn   String   @default("Contact Us")
+  primaryButtonLabelAr   String   @default("تواصل معنا")
+  primaryButtonLink      String   @default("/contact")
+  secondaryButtonLabelEn String   @default("More About Socotra")
+  secondaryButtonLabelAr String   @default("المزيد عن سقطرى")
+  secondaryButtonLink    String   @default("/about")
+  isActive               Boolean  @default(true)
+  updatedAt              DateTime @updatedAt
+
+  @@map("reports_cta_section")
+}
+
+model Car {
+  id              String          @id @default(cuid())
+  name            String
+  nameAr          String
+  slug            String          @unique
+  description     String
+  descriptionAr   String
+  brand           String?
+  type            String
+  year            Int?
+  pricePerDay     Float
+  discount        Float?          @default(0)
+  seats           Int             @default(4)
+  doors           Int             @default(4)
+  transmission    String          @default("Automatic")
+  fuelType        String?
+  rating          Float           @default(0)
+  reviewsCount    Int             @default(0)
+  status          HotelStatusEnum @default(ACTIVE)
+  featured        Boolean         @default(false)
+  coverImage      String
+  images          String[]
+  videoUrl        String?
+  features        String[]
+  featuresAr      String[]
+  metaTitle       String?
+  metaDescription String?
+  keywords        String[]
+  insurance       String?         @default("Basic")
+  insuranceAr     String?         @default("تأمين أساسي")
+  mileage         String?         @default("Unlimited")
+  mileageAr       String?         @default("غير محدود")
+  color           String?
+  colorAr         String?
+  minAge          Int             @default(21)
+  deposit         Float           @default(0)
+  luggage         Int             @default(2)
+  viewsCount      Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  bookings        Booking[]
+
+  @@index([slug])
+  @@index([featured])
+  @@index([status])
+  @@index([pricePerDay])
+  @@index([rating])
+  @@map("cars")
+}
+
+model CarsPageSetting {
+  id                String   @id @default(cuid())
+  heroImage         String   @default("/img/cars/hero.jpg")
+  heroBadgeAr       String   @default("تأجير سيارات فاخرة في سقطرى")
+  heroBadgeEn       String   @default("Luxury Car Rental in Socotra")
+  heroTitleAr       String   @default("رحلتك المثالية تبدأ بسيارة مثالية")
+  heroTitleEn       String   @default("Your Perfect Journey Starts With A Perfect Car")
+  heroSubtitleAr    String   @default("اختر من بين تشكيلة واسعة من سيارات الدفع الرباعي والسيارات الفاخرة لتنطلق بثقة")
+  heroSubtitleEn    String   @default("Choose from a wide range of 4x4s and luxury vehicles to explore with confidence")
+  primaryButtonAr   String   @default("استعرض الأسطول")
+  primaryButtonEn   String   @default("Browse Fleet")
+  primaryButtonLink String   @default("#fleet")
+  stats             Json     @default("[{\"value\": \"15+\", \"labelAr\": \"مركبة دفع رباعي\", \"labelEn\": \"4x4 Vehicles\"}, {\"value\": \"4.9\", \"labelAr\": \"تقييم العملاء\", \"labelEn\": \"Customer Rating\"}, {\"value\": \"24/7\", \"labelAr\": \"دعم فني للطرق\", \"labelEn\": \"Road Assistance\"}]")
+  updatedAt         DateTime @updatedAt
+
+  @@map("cars_page_settings")
+}
+
+model BlogToBlogTag {
+  A         String
+  B         String
+  blogs     Blog    @relation(fields: [A], references: [id], onDelete: Cascade)
+  blog_tags BlogTag @relation(fields: [B], references: [id], onDelete: Cascade)
+
+  @@id([A, B], map: "_BlogToBlogTag_AB_pkey")
+  @@index([B], map: "_BlogToBlogTag_B_index")
+  @@map("_BlogToBlogTag")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum Difficulty {
+  EASY
+  MODERATE
+  CHALLENGING
+  DIFFICULT
+}
+
+enum TourCategory {
+  ADVENTURE
+  CULTURAL
+  NATURE
+  BEACH
+  WILDLIFE
+  HERITAGE
+}
+
+enum HotelStatusEnum {
+  ACTIVE
+  DRAFT
+  SUSPENDED
+}
+
+enum BookingType {
+  TOUR
+  HOTEL
+  CAR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  CASH
+  PAYPAL
+}
+
+enum DestinationCategory {
+  NATURE
+  HERITAGE
+  BEACH
+  MOUNTAIN
+  ARCHAEOLOGICAL
+  WILDLIFE
+  CULTURAL
+  URBAN
+  ADVENTURE
+}
+
+enum NewsCategory {
+  TOURISM
+  ENVIRONMENT
+  WEATHER
+  UNESCO
+  CULTURE
+  EVENTS
+}
+
+enum GalleryCategory {
+  DESTINATIONS
+  TOURS
+  NATURE
+  CULTURE
+  WILDLIFE
+  PEOPLE
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum AboutSectionType {
+  GEOGRAPHY
+  NATURE
+  CULTURE
+  HISTORY
+}
+
+enum SpeciesCategory {
+  FLORA
+  FAUNA
+  MARINE
+  BIRDS
+}
+
+enum BlogCategory {
+  CULTURE
+  NATURE
+  TRAVEL
+  STORIES
+}
+
+enum FAQCategory {
+  GENERAL
+  TOURS
+  BOOKING
+  PAYMENT
+  TRAVEL
+  VISA
+  SAFETY
+}
+
+enum FeatureType {
+  FLORA
+  BEACH
+  CAVE
+  MOUNTAIN
+  WILDLIFE
+  GEOLOGICAL
+}
+
+enum TravelGuideSectionType {
+  QUICK_TIPS
+  VISA
+  TRANSPORT
+  ACCOMMODATION
+  TIME
+  SAFETY
+  PACKING_LIST
+  EMERGENCY
+  EXTRAS
+  SETTINGS
+}
