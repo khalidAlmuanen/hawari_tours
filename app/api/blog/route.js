@@ -23,7 +23,10 @@ export async function GET(request) {
 
         const blogs = await prisma.blog.findMany({
             where,
-            orderBy: { publishedAt: 'desc' },
+            orderBy: [
+                { publishedAt: 'desc' },
+                { createdAt: 'desc' }
+            ],
             select: {
                 id: true,
                 titleEn: true,
@@ -35,11 +38,24 @@ export async function GET(request) {
                 contentAr: true,
                 coverImage: true,
                 category: true,
-                tags: true,
                 featured: true,
                 publishedAt: true,
+                createdAt: true,
                 viewsCount: true,
                 commentsCount: true,
+                // ✅ Tags via correct junction table
+                BlogToBlogTag: {
+                    select: {
+                        blog_tags: {
+                            select: {
+                                id: true,
+                                nameEn: true,
+                                nameAr: true,
+                                slug: true
+                            }
+                        }
+                    }
+                },
                 author: {
                     select: {
                         id: true,
@@ -53,14 +69,24 @@ export async function GET(request) {
             }
         })
 
+        // Map tags for clean frontend response
+        const mapped = blogs.map(b => ({
+            ...b,
+            tags: b.BlogToBlogTag?.map(bt => bt.blog_tags) || [],
+            BlogToBlogTag: undefined
+        }))
+
         return NextResponse.json({
             success: true,
-            data: blogs
+            data: mapped
         })
     } catch (error) {
-        console.error('Error fetching blogs:', error)
+        console.error('Error fetching public blogs:', {
+            message: error.message,
+            code: error.code
+        })
         return NextResponse.json(
-            { success: false, error: 'Failed to fetch blogs' },
+            { success: false, error: 'Failed to fetch blogs', details: error.message },
             { status: 500 }
         )
     }
